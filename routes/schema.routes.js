@@ -1,20 +1,20 @@
-import express from "express";
+import express from 'express';
 
 import {
   getSchemas,
   createSchema,
   updateSchema,
   deleteSchema,
-} from "../controllers/schema.controller.js";
+} from '../controllers/schema.controller.js';
 
 const router = express.Router();
 
-router.get("/:projectId", getSchemas);
+router.get('/:projectId', getSchemas);
 
-router.post("/:projectId", createSchema);
+router.post('/:projectId', createSchema);
 
-router.put("/:id", updateSchema);
+router.put('/:id', updateSchema);
 
-router.delete("/:id", deleteSchema);
+router.delete('/:id', deleteSchema);
 
 export default router;

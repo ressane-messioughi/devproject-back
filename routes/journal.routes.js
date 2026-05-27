@@ -1,17 +1,17 @@
-import express from "express";
+import express from 'express';
 
 import {
   getProjectJournal,
   createJournalEntry,
   deleteJournalEntry,
-} from "../controllers/journals.controller.js";
+} from '../controllers/journals.controller.js';
 
 const router = express.Router();
 
-router.get("/:projectId", getProjectJournal);
+router.get('/:projectId', getProjectJournal);
 
-router.post("/:projectId", createJournalEntry);
+router.post('/:projectId', createJournalEntry);
 
-router.delete("/:id", deleteJournalEntry);
+router.delete('/:id', deleteJournalEntry);
 
 export default router;
