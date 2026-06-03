@@ -16,11 +16,11 @@ const loginUser = async ({email, password}) => {
     throw new AppError ("Email ou mots de passe invalide ❌")
   }
   const token = jwt.sign({
-    id: users_id, firstname: users_firstame, lastname: users_lastname, role: users_role},
+    id: users.id, firstname: users.firstname, lastname: users.lastname, role: users.role, avatar: users.avatar},
     process.env.JWT_SECRET,
     {expiresIn: "1h"}
   ) 
-  return token;
+  return {token};
 }
 const registerUser = async ({firstname, lastname, username, email, password, avatar, city, phone, role}) => {
     const existingUser = await authModel.findByEmail(email)

@@ -2,7 +2,6 @@ import authService from "../services/auth.service.js"
 
 export const login = async (req, res) => {
     const {email, password} = req.body
-    console.log("BODY LOGIN:", req.body);
     const token = await authService.loginUser({email, password})
     return res.json(token)
 } 
