@@ -7,7 +7,7 @@ import {
   deleteSchema,
 } from '../controllers/schema.controller.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.get('/:projectId', getSchemas);
 

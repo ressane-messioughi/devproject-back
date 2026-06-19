@@ -21,7 +21,11 @@ const register = async (firstname, lastname, username, email, hashedPassword, av
   ]);
   return result;
 };
+const update = async (sql, values) => {
+  return await db.execute(sql, values);
+};
 export default {
   findByEmail,
   register,
+  update
 };

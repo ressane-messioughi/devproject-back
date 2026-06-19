@@ -7,7 +7,7 @@ import {
   updateMemberRole,
 } from '../controllers/team.controller.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.get('/:projectId', getProjectTeam);
 

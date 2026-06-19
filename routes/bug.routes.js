@@ -2,7 +2,7 @@ import express from 'express';
 
 import { getBugs, createBug, updateBug, deleteBug } from '../controllers/bug.controller.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.get('/:projectId', getBugs);
 

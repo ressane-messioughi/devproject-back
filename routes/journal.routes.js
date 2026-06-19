@@ -1,17 +1,13 @@
 import express from 'express';
 
-import {
-  getProjectJournal,
-  createJournalEntry,
-  deleteJournalEntry,
-} from '../controllers/journals.controller.js';
+import journalController from '../controllers/journals.controller.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-router.get('/:projectId', getProjectJournal);
+router.get('/', journalController.getAll);
 
-router.post('/:projectId', createJournalEntry);
+router.post('/', journalController.createMessage); 
 
-router.delete('/:id', deleteJournalEntry);
+router.delete('/:id_journal', journalController.deleteMessage);
 
 export default router;
