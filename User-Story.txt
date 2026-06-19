@@ -21,7 +21,7 @@ En tant que "UserInProject" je peux Accéder aux fichiers BUG/DEBUG issue du mê
 En tant que "UserInProject" je peux Upload et Download des fichiers dans la rubrique BUG/DEBUG /// BUG - USER
 En tant que "UserInProject" je peux Accéder aux Journal du projet et rédiger un message  /// Journal - USER
 En tant que "UserInProject" je peux Consulter les task attribué à chaque membre de l'équipe par le [OwnerProject] /// Task - USER
-En tant que "UserInProject" je peux Accéder et Consulter ainsi que Download les différents Shémas (UML, modélisation...) ///Shémas - USE
+En tant que "UserInProject" je peux Accéder et Consulter ainsi que Download les différents Shémas (UML, modélisation...) ///Shémas - USER
 
 __________________________________
 
@@ -37,5 +37,4 @@ __________________________________
 En tant que "ADMIN" je peux Consulté la liste des Utilisateurs global et voir leurs données (Teams, Project, etc ...) /// ADMIN - OWNER
 En tant que "ADMIN" je peux Consulté la liste des Projects et voir les données nécessaire (Nmbre de membre, créer depuis etc ...) /// ADMIN - OWNER
 En tant que "ADMIN" je peux Consulté la liste des Teams et voir les donnée nécessaire (Nmbre de membre, créer depuis etc ...) /// ADMIN - OWNER
-En tant que "ADMIN" je peux Supprimer un membre dans une équipe. /// ADMIN - OWNER
 

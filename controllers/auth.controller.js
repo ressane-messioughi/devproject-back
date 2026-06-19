@@ -10,3 +10,13 @@ export const register = async (req, res) => {
     const user = await authService.registerUser({firstname, lastname, username, email, password, avatar, city, phone, role})
     return res.json(user.insertId)
 }
+export const updateUser = async (req, res) => {
+  const id = req.user.id;
+
+  const result = await authService.updateUser(id, req.body);
+
+  return res.status(200).json({
+    message: "Utilisateur modifié avec succès",
+    result,
+  });
+};
