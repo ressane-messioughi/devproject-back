@@ -11,9 +11,9 @@ const findById = async (id) => {
     const [result] = await db.execute(sql,[id])
     return result
 }
-const create = async (name, description, owner_id) => {
-    const sql = "INSERT INTO project (name,description,owner_id) VALUES (?,?,?)"
-    const [result] = await db.execute(sql,[name,description,owner_id])
+const create = async (name, description, owner_id, team_code) => {
+    const sql = "INSERT INTO project (name,description,owner_id,team_code) VALUES (?,?,?,?)"
+    const [result] = await db.execute(sql,[name,description,owner_id,team_code])
     return result
 }
 const update = async (name, description, id) => {
