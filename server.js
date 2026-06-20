@@ -5,6 +5,7 @@ import authRoute from "./routes/auth.routes.js"
 import projectRoute from "./routes/project.routes.js"
 import journalRoute from "./routes/journal.routes.js"
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
