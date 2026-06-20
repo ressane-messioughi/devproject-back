@@ -9,9 +9,19 @@ const getAllRequestByProject = async (id_project) => {
     const result = await joinRequestModel.findAllProjectById(id_project);
     return result;
 };
-
+const acceptRequest = async (id_request) => {
+    const request = await joinRequestModel.findById(id_request);
+    await joinRequestModel.updateStatus(id_request, "ACCEPTED")
+    return request
+}
+const refuseRequest = async (id_request) => {
+    const request = await joinRequestModel.updateStatus(id_request, "REFUSED") 
+    return request
+}
 
 export default {
     createRequest,
-    getAllRequestByProject
+    getAllRequestByProject,
+    acceptRequest,
+    refuseRequest
 }
