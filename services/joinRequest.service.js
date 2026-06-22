@@ -1,4 +1,5 @@
 import joinRequestModel from "../models/joinRequest.model.js"
+import teamModel from "../models/team.model.js";
 
 const createRequest = async (team_code, user_id) => {
     const project = await joinRequestModel.findProjectByTeamCode(team_code)
@@ -11,6 +12,9 @@ const getAllRequestByProject = async (id_project) => {
 };
 const acceptRequest = async (id_request) => {
     const request = await joinRequestModel.findById(id_request);
+    console.log(request);
+    const team = await teamModel.findByProjectId(request.project_id)
+    await teamModel.addUserToTeam(request.user_id,team.id_team, "MEMBER")
     await joinRequestModel.updateStatus(id_request, "ACCEPTED")
     return request
 }

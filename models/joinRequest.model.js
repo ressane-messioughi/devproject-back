@@ -24,8 +24,8 @@ const updateStatus = async (id_request, status) => {
 }
 const findById = async (id_request) => {
     const sql = "SELECT * FROM join_request WHERE id_request = ?"
-    const result = await db.execute(sql, [id_request])
-    return result
+    const [result] = await db.execute(sql, [id_request])
+    return result[0]
 }
 
 export default {
