@@ -1,15 +1,13 @@
 import express from 'express';
 
-import { getTasks, createTask, updateTask, deleteTask } from '../controllers/task.controller.js';
+import taskController from "../controllers/task.controller.js"
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router({ mergeParams: true });
 
-router.get('/:project_id/task/', getTasks);
-
-router.post('/:project_id/task/', createTask);
-
-router.put('/:project_id/task/:task_id', updateTask);
-
-router.delete('/project_id/task/:task_id', deleteTask);
+router.get("/", authenticate, taskController.getProjectTasks);
+router.post("/", authenticate, taskController.createTask);
+router.put("/:id_task", authenticate, taskController.updateTask);
+router.delete("/:id_task", authenticate, taskController.deleteTask);
 
 export default router;

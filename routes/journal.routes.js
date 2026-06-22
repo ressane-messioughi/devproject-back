@@ -1,13 +1,13 @@
 import express from 'express';
-
 import journalController from '../controllers/journals.controller.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router({ mergeParams: true });
 
-router.get('/', journalController.getAll);
+router.get('/', authenticate, journalController.getProjectMessage);
 
-router.post('/', journalController.createMessage); 
+router.post('/', authenticate, journalController.createMessage); 
 
-router.delete('/:id_journal', journalController.deleteMessage);
+router.delete('/:id_journal', authenticate, journalController.deleteMessage);
 
 export default router;

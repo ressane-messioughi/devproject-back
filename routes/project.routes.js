@@ -8,6 +8,8 @@ const router = express.Router({ mergeParams: true });
 
 router.get('/', authenticate, projectController.getAllProject);
 
+router.get("/my-project", authenticate, projectController.getMyProject)
+
 router.get("/:id_project/requests", authenticate, joinRequestController.getAllRequestByProject)
 
 router.put("/:id_project/requests/:id_request/accept", authenticate, joinRequestController.acceptRequest);
@@ -23,6 +25,7 @@ router.put('/:id_project', authenticate, projectController.updateProject);
 router.delete('/:id_project', authenticate, projectController.removeProject);
 // =============================================================================================================================
 router.post("/join", authenticate, joinRequestController.createRequest);
+
 
 
 

@@ -10,8 +10,8 @@ const getAll = async () => {
  const result = await projectModel.findAll();
  return result 
 }
-const getById = async (id) => {
-    const result = await projectModel.findById(id)
+const getById = async (id_project) => {
+    const result = await projectModel.findById(id_project)
     return result 
 }
 const createProject = async (name,description,owner_id) => {
@@ -22,17 +22,23 @@ const createProject = async (name,description,owner_id) => {
         await teamModel.addUserToTeam(owner_id, team.insertId, "OWNER")
     return project
 }
-const updateProject = async (id, {name,description}) => {
-const result = await projectModel.update(name,description,id);
+const updateProject = async (id_project, {name,description}) => {
+const result = await projectModel.update(name,description,id_project);
 return result;
 }
-const deleteProject = async (id) => {
-    const result = await projectModel.remove(id)
+const deleteProject = async (id_project) => {
+    const result = await projectModel.remove(id_project)
     return result
 }
+const getMyProjects = async (user_id) =>{
+const result = await projectModel.findByUserId(user_id)
+return result
+}
+
 export default {
     getAll,
     getById,
+    getMyProjects,
     createProject,
     updateProject,
     deleteProject

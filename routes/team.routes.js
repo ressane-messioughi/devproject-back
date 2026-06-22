@@ -1,20 +1,9 @@
 import express from 'express';
-
-import {
-  getProjectTeam,
-  inviteMember,
-  removeMember,
-  updateMemberRole,
-} from '../controllers/team.controller.js';
+import teamController from "../controllers/team.controller.js"
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router({ mergeParams: true });
 
-router.get('/:projectId', getProjectTeam);
-
-router.post('/:projectId/invite', inviteMember);
-
-router.put('/:projectId/:userId/role', updateMemberRole);
-
-router.delete('/:projectId/:userId', removeMember);
+router.get('/', authenticate, teamController.getUserTeam );
 
 export default router;

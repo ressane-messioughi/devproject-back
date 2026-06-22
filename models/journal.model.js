@@ -1,23 +1,13 @@
 import db from '../config/db.js'
 
-const findAll = async () => {
-const sql = "SELECT * FROM journal";
-const [result] = await db.execute(sql);
+const findAllByProject = async (project_id) => {
+const sql = "SELECT * FROM journal WHERE project_id = ?";
+const [result] = await db.execute(sql, [project_id]);
 return result;
 }
-const findById = async (id_project) => {
-    const sql = 'SELECT * FROM journal WHERE id_project = ?';
-    const [result] = await db.execute(sql, [id_project]);
-    return result
-}
-const create = async (message, id_project, id) => {
-    const sql = 'INSERT INTO journal (message, id_project, id) VALUES (?,?,?)';
-    const [result] = await db.execute(sql, [message,id_project,id]);
-    return result
-}
-const update = async (id_journal, message) => {
-    const sql = 'UPDATE journal SET message = ? WHERE journal_id = ?';
-    const [result] = await db.execute(sql, [id_journal, message])
+const create = async (message, project_id, users_id) => {
+    const sql = 'INSERT INTO journal (message, project_id, users_id) VALUES (?,?,?)';
+    const [result] = await db.execute(sql, [message,project_id,users_id]);
     return result
 }
 const remove = async (id_journal) => {
@@ -25,10 +15,9 @@ const remove = async (id_journal) => {
     const [result] = await db.execute(sql, [id_journal]);
     return result;
 } 
+
 export default {
-    findAll,
-    findById,
+    findAllByProject,
     create,
-    update,
     remove
 }
