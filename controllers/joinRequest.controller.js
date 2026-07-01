@@ -1,30 +1,46 @@
-import joinRequestService from "../services/joinRequest.service.js";
+import joinRequestService from '../services/joinRequest.service.js';
 
+// Fonction pour créer une demande de rejoindre un projet
 const createRequest = async (req, res) => {
-    const {team_code} = req.body;
-    const user_id = req.user.id;
-    const result = await joinRequestService.createRequest(team_code, user_id);
-    return res.status(201).json({message: "Demande envoyée avec succès ! ✅", result})
+  const { team_code } = req.body;
+  const user_id = req.user.id;
+  const result = await joinRequestService.createRequest(team_code, user_id);
+  return res.status(201).json({ message: 'Demande envoyée avec succès ! ✅', result });
 };
+
+// Fonction pour récupérer toutes les demandes d'un projet
 const getAllRequestByProject = async (req, res) => {
-    const {id_project} = req.params;
-    const result = await joinRequestService.getAllRequestByProject(id_project);
-    return res.status(200).json(result)
+  const { id_project } = req.params;
+  const result = await joinRequestService.getAllRequestByProject(id_project);
+  return res.status(200).json(result);
 };
+
+// Fonction pour accepter une demande de rejoindre un projet
 const acceptRequest = async (req, res) => {
-const {id_request} = req.params;
-const result = await joinRequestService.acceptRequest(id_request);
-return res.status(201).json({message : "Demande accepté avec succès ! ✅", result})
-}
+  const { id_request } = req.params;
+  const result = await joinRequestService.acceptRequest(id_request);
+  const io = req.app.get('io');
+
+  io.to(`project_${result.project_id}`).emit('memberJoinedProject', {
+    project_id: result.project_id,
+    username: result.username,
+    avatar: result.avatar,
+  });
+  console.log('code', result);
+
+  return res.status(201).json({ message: 'Demande accepté avec succès ! ✅', result });
+};
+
+// Fonction pour refuser une demande de rejoindre un projet
 const refuseRequest = async (req, res) => {
-    const {id_request} = req.params;
-    const result = await joinRequestService.refuseRequest(id_request);
-    return res.status(200).json({message : "Demannde refusé avec succès ! ⛔️"})
-} 
+  const { id_request } = req.params;
+  const result = await joinRequestService.refuseRequest(id_request);
+  return res.status(200).json({ message: 'Demannde refusé avec succès ! ⛔️', result });
+};
 
 export default {
-    createRequest,
-    getAllRequestByProject,
-    acceptRequest,
-    refuseRequest
-}
+  createRequest,
+  getAllRequestByProject,
+  acceptRequest,
+  refuseRequest,
+};

@@ -1,17 +1,21 @@
 import express from 'express';
 
-import {
-  connectGithub,
-  syncRepository,
-  getGithubRepository,
-} from '../controllers/github.controller.js';
+import githubController from "../controllers/github.controller.js"
+import { authenticate } from '../middleware/auth.middleware.js';
+
 
 const router = express.Router({ mergeParams: true });
 
-router.get('/:projectId', getGithubRepository);
+// Récupération de tous les dépôts GitHub d'un projet
+router.get("/", authenticate, githubController.getProjectRepositories);
 
-router.post('/:projectId/connect', connectGithub);
+// Création d'un nouveau dépôt GitHub pour un projet
+router.post("/", authenticate, githubController.createRepository);
 
-router.post('/:projectId/sync', syncRepository);
+// Mise à jour d'un dépôt GitHub existant pour un projet
+router.put("/:id_repository", authenticate, githubController.updateRepository);
+
+// Suppression d'un dépôt GitHub existant pour un projet
+router.delete("/:id_repository", authenticate, githubController.deleteRepository);
 
 export default router;

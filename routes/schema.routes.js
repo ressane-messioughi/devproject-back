@@ -1,20 +1,21 @@
 import express from 'express';
 
-import {
-  getSchemas,
-  createSchema,
-  updateSchema,
-  deleteSchema,
-} from '../controllers/schema.controller.js';
+import schemaController from '../controllers/schema.controller.js';
 
 const router = express.Router({ mergeParams: true });
 
-router.get('/:projectId', getSchemas);
+// Récupération de tous les schémas d'un projet
+router.get('/', schemaController.getProjectSchemas);
 
-router.post('/:projectId', createSchema);
+// Récupération d'un schéma par son ID
+router.get('/:id_schema', schemaController.getSchemaById);
 
-router.put('/:id', updateSchema);
+// Création d'un nouveau schéma pour un projet
+router.post('/', schemaController.createSchema);
 
-router.delete('/:id', deleteSchema);
+// Mise à jour d'un schéma existant pour un projet
+router.put('/:id_schema', schemaController.updateSchema);
 
+// Suppression d'un schéma existant pour un projet
+router.delete('/:id_schema', schemaController.deleteSchema);
 export default router;
