@@ -1,15 +1,20 @@
 import express from 'express';
 
-import { getBugs, createBug, updateBug, deleteBug } from '../controllers/bug.controller.js';
+import bugController from '../controllers/bug.controller.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router({ mergeParams: true });
 
-router.get('/:projectId', getBugs);
+// Récupération de tous les bugs d'un projet
+router.get('/', authenticate, bugController.getBugByProject);
 
-router.post('/:projectId', createBug);
+// Création d'un nouveau bug pour un projet
+router.post('/', authenticate, bugController.createBug);
 
-router.put('/:id', updateBug);
+// Mise à jour d'un bug existant pour un projet
+router.put('/:id_bug', authenticate, bugController.updateBug);
 
-router.delete('/:id', deleteBug);
+// Suppression d'un bug existant pour un projet
+router.delete('/:id_bug', authenticate, bugController.deleteBug);
 
 export default router;
