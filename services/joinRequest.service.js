@@ -5,12 +5,12 @@ import teamModel from "../models/team.model.js";
 const createRequest = async (team_code, user_id) => {
     const project = await joinRequestModel.findProjectByTeamCode(team_code)
     const result = await joinRequestModel.create(project.id_project, user_id)
-    return result 
+    return {result, project} 
 };
 // Fonction pour récupérer toutes les demandes d'un projet
 const getAllRequestByProject = async (id_project) => {
     const result = await joinRequestModel.findAllProjectById(id_project);
-    return result;
+    return result
 };
 // Fonction pour accepter une demande de rejoindre un projet
 const acceptRequest = async (id_request) => {
