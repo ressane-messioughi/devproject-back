@@ -9,7 +9,7 @@ const getUserTeam = async (project_id) => {
 // Fonction pour supprimer un utilisateur d'une équipe  
 const deleteTeamUser = async (users_id, team_id) => {
     const result = await teamModel.removeTeamUser(users_id, team_id);
-    return result 
+    return result
 }
 export default {
     getUserTeam,

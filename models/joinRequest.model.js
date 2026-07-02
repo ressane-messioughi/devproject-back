@@ -10,7 +10,7 @@ const findProjectByTeamCode = async (team_code) => {
 // Fonction pour créer une demande de rejoindre un projet
 const create = async (project_id, user_id) => {
   const sql = `INSERT INTO join_request (project_id, user_id, status) VALUES (?,?,'PENDING')`;
-  const result = await db.execute(sql, [project_id, user_id]);
+  const [result] = await db.execute(sql, [project_id, user_id]);
   return result;
 };
 

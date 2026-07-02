@@ -4,7 +4,19 @@ import joinRequestService from '../services/joinRequest.service.js';
 const createRequest = async (req, res) => {
   const { team_code } = req.body;
   const user_id = req.user.id;
-  const result = await joinRequestService.createRequest(team_code, user_id);
+  const {result, project} = await joinRequestService.createRequest(team_code, user_id);
+  const io = req.app.get('io');
+
+  io.to(`project_${project.id_project}`).emit('newJoinRequest', {
+    id_request: result.insertId,
+    project_id: project.id_project,
+    status: 'PENDING',
+    firstname: req.user.firstname,
+    lastname: req.user.lastname,
+    username: req.user.username,
+    avatar: req.user.avatar,
+  });
+  
   return res.status(201).json({ message: 'Demande envoyée avec succès ! ✅', result });
 };
 

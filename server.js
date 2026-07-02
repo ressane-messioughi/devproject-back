@@ -19,7 +19,7 @@ const server = createServer(app);
 // Création d'une instance de Socket.IO contenant le serveur HTTP + configuration CORS
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173','http://192.168.1.17:5173'],
     methods: ['GET', 'POST'],
   },
 });
@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:5173','http://192.168.1.17:5173'],
   }),
 );
 
@@ -54,6 +54,6 @@ app.use('/api/project/:id_project/sprint', sprintRoute);
 app.use('/api/project/:id_project/github', githubRoute);
 app.use('/api/project/:id_project/team', teamRoute);
 
-server.listen(PORT, () => {
+server.listen(PORT,"0.0.0.0", () => {
   console.log(`🔥 Backend running on http://localhost:${PORT} ✅`);
 });
