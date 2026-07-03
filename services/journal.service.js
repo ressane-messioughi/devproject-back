@@ -8,7 +8,7 @@ const getProjectMessage = async (project_id) => {
 // Fonction pour créer un message
 const createMessage = async (title,message,project_id, users_id) => {
     const result = await journalModel.create(title,message, project_id, users_id);
-    return result
+    return result;
 }
 // Fonction pour supprimer un message
 const deleteMessage = async (id_journal) => {

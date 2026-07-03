@@ -23,7 +23,6 @@ if (err) {
 }
 // Ajout des informations de l'utilisateur décodées à la requête
 req.user = decoded
-console.log(req.user)
 next();
 })
 }

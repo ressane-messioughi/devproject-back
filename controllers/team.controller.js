@@ -1,4 +1,5 @@
 import teamService from '../services/team.service.js';
+import socketService from '../services/socket.service.js';
 
 // Fonction pour récupérer l'équipe d'un projet
 const getUserTeam = async (req, res) => {
@@ -10,18 +11,8 @@ const getUserTeam = async (req, res) => {
 const deleteTeamUser = async (req, res) => {
   const users_id = req.user.id;
   const { id_project, team_id } = req.params;
-
   const result = await teamService.deleteTeamUser(users_id, team_id);
-
-  const io = req.app.get("io");
-
-  io.to(`project_${id_project}`).emit("memberLeftProject", {
-    project_id: id_project,
-    user_id: req.user.id,
-    username: req.user.username,
-    avatar: req.user.avatar,
-  });
-
+  socketService.deleteProject(id_project, req.user);
   return res.status(200).json({
     message: "Utilisateur supprimé avec succès",
     result,

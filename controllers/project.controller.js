@@ -1,4 +1,5 @@
 import projectService from '../services/project.service.js';
+import socketService from '../services/socket.service.js';
 
 // Fonction pour récupérer tous les projets
 const getAllProject = async (req, res) => {
@@ -22,6 +23,13 @@ const createProject = async (req, res) => {
   const owner_id = req.user.id;
   const { name, description } = req.body;
   const result = await projectService.createProject(name, description, owner_id);
+    const newProject = {
+    project_id: result.id_project,
+    name,
+    description,
+    owner_id: result.owner_id
+  };
+  socketService.newProjectList(newProject)
   return res.status(200).json({ result, message: 'Projet créer avec succès !' });
 };
 // Fonction pour mettre à jour un projet
