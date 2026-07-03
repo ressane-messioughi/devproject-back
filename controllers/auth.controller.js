@@ -46,7 +46,6 @@ export const updateAvatar = async (req, res) => {
     );
 
     stream.end(req.file.buffer);
-    console.log(req.file);
   });
   const avatar = uploadResult.secure_url;
   const result = await authService.updateAvatar(user_id, avatar);

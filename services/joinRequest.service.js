@@ -3,7 +3,7 @@ import teamModel from "../models/team.model.js";
 
 // Fonction pour créer une demande de rejoindre une équipe
 const createRequest = async (team_code, user_id) => {
-    const project = await joinRequestModel.findProjectByTeamCode(team_code)
+    const project = await joinRequestModel.findProjectByTeamCode(team_code);
     const result = await joinRequestModel.create(project.id_project, user_id)
     return {result, project} 
 };
@@ -15,7 +15,6 @@ const getAllRequestByProject = async (id_project) => {
 // Fonction pour accepter une demande de rejoindre un projet
 const acceptRequest = async (id_request) => {
   const request = await joinRequestModel.findById(id_request);
-  console.log(request);
   const team = await teamModel.findByProjectId(request.project_id);
   await teamModel.addUserToTeam(request.user_id, team.id_team, 'MEMBER');
   await joinRequestModel.updateStatus(id_request, 'ACCEPTED');

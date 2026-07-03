@@ -37,7 +37,6 @@ const findAllProjectById = async (project_id) => {
     WHERE jr.project_id = ?
   `;
   const [result] = await db.execute(sql, [project_id]);
-  console.log(result);
   return result;
 };
 

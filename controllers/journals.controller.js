@@ -1,4 +1,5 @@
 import journalService from "../services/journal.service.js";
+import socketService from "../services/socket.service.js";
 
 // Fonction pour récupérer les messages d'un projet
 const getProjectMessage = async (req, res) => {
@@ -12,6 +13,7 @@ const createMessage = async (req, res) => {
     const {title, message} = req.body;
     const {id_project} = req.params;
     const users_id = req.user.id;
+    const user = req.user
     const result = await journalService.createMessage(title, message, id_project, users_id);
 
     // Création d'un objet représentant le nouveau message pour l'émission via Socket.IO
@@ -25,19 +27,9 @@ const createMessage = async (req, res) => {
     username: req.user.username,
     avatar: req.user.avatar,
   };
-    const io = req.app.get("io");
+  socketService.newJournalMessage(id_project, newMessage)
+  socketService.journalNotifyTeam(id_project, user, title)
 // Mise à jour du composant Journal en temps réel pour tous les utilisateurs connectés au projet
-io.to(`project_${id_project}`).emit("newJournalMessage", newMessage); 
-// Notification en temps réel pour tous les utilisateurs connectés au projet lorsqu'un nouveau message est créé
-io.to(`project_${id_project}`).emit("journalNotification", {
-    // Informations sur le nouveau message pour la notification
-  project_id: id_project,
-  username: req.user.username,
-  avatar: req.user.avatar,
-  title,
-});
-
-
     return res.status(201).json({result, message : 'Message créer avec succès !'}) 
 };
 
