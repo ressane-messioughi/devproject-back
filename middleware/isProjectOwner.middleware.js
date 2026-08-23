@@ -1,5 +1,5 @@
 import teamModel from '../models/team.model.js';
-import AppError from './appError.js';
+import AppError from './AppError.js';
 
 // Middleware qui vérifie que l'utilisateur connecté est bien le OWNER de l'équipe
 // du projet ciblé (req.params.id_project). À utiliser sur toute route réservée au owner.

@@ -1,5 +1,5 @@
 import bugsModel from "../models/bugs.model.js";
-import AppError from "../middleware/appError.js";
+import AppError from "../middleware/AppError.js";
 
 // Fonction pour récupérer tous les bugs d'un projet
 const getProjectBug = async (project_id) => {
