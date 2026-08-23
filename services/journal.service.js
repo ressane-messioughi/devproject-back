@@ -1,6 +1,6 @@
 import journalModel from '../models/journal.model.js'
 import teamModel from '../models/team.model.js'
-import AppError from '../middleware/appError.js'
+import AppError from '../middleware/AppError.js'
 
 // Fonction pour récupérer tous les messages d'un projet
 const getProjectMessage = async (project_id) => {

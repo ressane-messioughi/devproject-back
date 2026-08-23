@@ -1,7 +1,7 @@
 import authModel from "../models/auth.model.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-import AppError from "../middleware/appError.js"
+import AppError from "../middleware/AppError.js"
 
 // Fonction pour connecter un utilisateur
 const loginUser = async ({email, password}) => {
