@@ -1,20 +1,22 @@
-import express from "express";
+import express from 'express';
 
-import {
-  getTasks,
-  createTask,
-  updateTask,
-  deleteTask,
-} from "../controllers/task.controller.js";
+import taskController from "../controllers/task.controller.js"
+import { authenticate } from '../middleware/auth.middleware.js';
+import validate from '../middleware/validate.js';
+import { validateTaskBody } from '../validators/task.validator.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-router.get("/:projectId", getTasks);
+// Récupération de toutes les tâches d'un projet
+router.get("/", authenticate, taskController.getProjectTasks);
 
-router.post("/:projectId", createTask);
+// Création d'une nouvelle tâche
+router.post("/", authenticate, validateTaskBody, validate, taskController.createTask);
 
-router.put("/:id", updateTask);
+// Mise à jour d'une tâche existante
+router.put("/:id_task", authenticate, validateTaskBody, validate, taskController.updateTask);
 
-router.delete("/:id", deleteTask);
+// Suppression d'une tâche existante
+router.delete("/:id_task", authenticate, taskController.deleteTask);
 
 export default router;
