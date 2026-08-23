@@ -27,9 +27,17 @@ const remove = async (id_repository) => {
   const [result] = await db.execute(sql, [id_repository]);
   return result;
 };
+// Fonction pour supprimer tous les dépôts GitHub d'un projet
+const removeByProjectId = async (project_id) => {
+  const sql = 'DELETE FROM github_repository WHERE project_id = ?';
+  const [result] = await db.execute(sql, [project_id]);
+  return result;
+};
+
 export default {
   findAllByProject,
   create,
   update,
   remove,
+  removeByProjectId,
 };

@@ -19,7 +19,7 @@ const server = createServer(app);
 // Création d'une instance de Socket.IO contenant le serveur HTTP + configuration CORS
 export const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173'/*,'http://192.168.1.17:5173'*/],
+    origin: ['http://localhost:5173','http://localhost:5174'],
     methods: ['GET', 'POST'],
   },
 });
@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ['http://localhost:5173'/*,'http://192.168.1.17:5173'*/],
+    origin: ['http://localhost:5173','http://localhost:5174'],
   }),
 );
 
@@ -54,6 +54,15 @@ app.use('/api/project/:id_project/sprint', sprintRoute);
 app.use('/api/project/:id_project/github', githubRoute);
 app.use('/api/project/:id_project/team', teamRoute);
 
-server.listen(PORT,/*"0.0.0.0",*/ () => {
+// Middleware d'erreur global — doit rester le tout dernier app.use().
+// Sans lui, une AppError levée dans un service retombe sur le gestionnaire
+// par défaut d'Express, qui ignore statusCode et renvoie du HTML au lieu de JSON.
+app.use((err, req, res, next) => {
+  console.error(err);
+  const statusCode = err.statusCode || 500;
+  return res.status(statusCode).json({ message: err.message || 'Erreur serveur' });
+});
+
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`🔥 Backend running on http://localhost:${PORT} ✅`);
 });

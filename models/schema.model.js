@@ -13,7 +13,15 @@ const findById = async (id_project, id_schema) => {
   const result = await db.execute(sql, [id_project, id_schema]);
   return result;
 };
+// Fonction pour supprimer tous les schémas d'un projet
+const removeByProjectId = async (project_id) => {
+  const sql = 'DELETE FROM schema WHERE project_id = ?';
+  const [result] = await db.execute(sql, [project_id]);
+  return result;
+};
+
 export default {
   findAll,
   findById,
+  removeByProjectId,
 };

@@ -16,15 +16,24 @@ const findById = async (id_project) => {
 
 // Fonction pour récupérer tous les projets d'un utilisateur par son ID
 const findByUserId = async (user_id) => {
-  const sql = `SELECT DISTINCT p.*, t.id_team AS team_id, tu.role FROM Project p INNER JOIN Team t ON t.project_id = p.id_project INNER JOIN TEAM_USER tu ON tu.team_id = t.id_team WHERE tu.users_id = ?`;
+  const sql = `SELECT DISTINCT p.*, t.id_team AS team_id, tu.role FROM project p INNER JOIN team t ON t.project_id = p.id_project INNER JOIN team_user tu ON tu.team_id = t.id_team WHERE tu.users_id = ?`;
   const [result] = await db.execute(sql, [user_id]);
   return result;
 };
 
 // Fonction pour créer un projet
-const create = async (name, description, owner_id, team_code) => {
-  const sql = 'INSERT INTO project (name,description,owner_id,team_code) VALUES (?,?,?,?)';
-  const [result] = await db.execute(sql, [name, description, owner_id, team_code]);
+const create = async (name, description, owner_id, team_code, trello_url) => {
+  const sql =
+    'INSERT INTO project (name,description,owner_id,team_code,trello_url) VALUES (?,?,?,?,?)';
+  // mysql2 refuse "undefined" comme paramètre (contrairement à SQL NULL) : trello_url
+  // étant optionnel, on le normalise explicitement quand il n'est pas fourni.
+  const [result] = await db.execute(sql, [
+    name,
+    description,
+    owner_id,
+    team_code,
+    trello_url ?? null,
+  ]);
   return result;
 };
 

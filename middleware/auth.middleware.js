@@ -19,7 +19,7 @@ jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
 
 //Gestion d'erreur si le token est invalide ou expiré
 if (err) {
-    return res.status(403).send("Token invalide ou expiré ❌")
+    return res.status(401).send("Token invalide ou expiré ❌")
 }
 // Ajout des informations de l'utilisateur décodées à la requête
 req.user = decoded
