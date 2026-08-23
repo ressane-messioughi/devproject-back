@@ -1,5 +1,6 @@
 import joinRequestModel from "../models/joinRequest.model.js"
 import teamModel from "../models/team.model.js";
+import projectModel from "../models/project.model.js";
 
 // Fonction pour créer une demande de rejoindre une équipe
 const createRequest = async (team_code, user_id) => {
@@ -18,7 +19,11 @@ const acceptRequest = async (id_request) => {
   const team = await teamModel.findByProjectId(request.project_id);
   await teamModel.addUserToTeam(request.user_id, team.id_team, 'MEMBER');
   await joinRequestModel.updateStatus(id_request, 'ACCEPTED');
-  return request;
+
+  // Récupération des infos du projet pour notifier l'utilisateur accepté (rejoint via WebSocket)
+  const [project] = await projectModel.findById(request.project_id);
+
+  return { ...request, project };
 };
 // Fonction pour refuser une demande de rejoindre un projet
 const refuseRequest = async (id_request) => {

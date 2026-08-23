@@ -36,10 +36,18 @@ const findById = async (id_sprint) => {
   const [result] = await db.execute(sql, [id_sprint]);
   return result;
 };
+// Fonction pour supprimer tous les sprints d'un projet
+const removeByProjectId = async (project_id) => {
+  const sql = 'DELETE FROM sprint WHERE project_id = ?';
+  const [result] = await db.execute(sql, [project_id]);
+  return result;
+};
+
 export default {
   findAllByProject,
   create,
   update,
   remove,
   findById,
+  removeByProjectId,
 };

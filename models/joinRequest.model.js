@@ -33,7 +33,7 @@ const findAllProjectById = async (project_id) => {
       jr.created_at
 
     FROM join_request jr
-    JOIN Users u ON jr.user_id = u.id
+    JOIN users u ON jr.user_id = u.id
     WHERE jr.project_id = ?
   `;
   const [result] = await db.execute(sql, [project_id]);
@@ -59,10 +59,17 @@ const findById = async (id_request) => {
       u.username,
       u.avatar
     FROM join_request jr
-    JOIN Users u ON jr.user_id = u.id
+    JOIN users u ON jr.user_id = u.id
     WHERE jr.id_request = ? `;
   const [result] = await db.execute(sql, [id_request]);
   return result[0];
+};
+
+// Fonction pour supprimer toutes les demandes de rejoindre un projet
+const removeByProjectId = async (project_id) => {
+  const sql = 'DELETE FROM join_request WHERE project_id = ?';
+  const [result] = await db.execute(sql, [project_id]);
+  return result;
 };
 
 export default {
@@ -71,4 +78,5 @@ export default {
   findAllProjectById,
   updateStatus,
   findById,
+  removeByProjectId,
 };

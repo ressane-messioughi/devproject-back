@@ -7,14 +7,14 @@ import AppError from "../middleware/appError.js"
 const loginUser = async ({email, password}) => {
     const user = await authModel.findByEmail(email);
     if (user.length === 0) {
-        throw new AppError ("Utilisateurs non trouvé")
+        throw new AppError ("Email ou mots de passe invalide ❌", 401)
     };
 
     const users = user[0];
 // Vérification du password saisie avec le password HASH stocké dans la base donnée.
     const isPasswordIsValid = await bcrypt.compare(password, users.password)
   if (!isPasswordIsValid) {
-    throw new AppError ("Email ou mots de passe invalide ❌", 400 )
+    throw new AppError ("Email ou mots de passe invalide ❌", 401 )
   }
   // Assignation d'un TOKEN à la connection contenant les informations de l'utilisateur pour une durée de validité de 2 Heures 
   const token = jwt.sign({
@@ -81,7 +81,7 @@ const updateUser = async (id, userData) => {
     return { message: "Rien à modifier" };
   }
 
-  const sql = `UPDATE Users SET ${fields.join(", ")} WHERE id = ?`;
+  const sql = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
   values.push(id);
 
   const [result] = await authModel.update(sql, values);
@@ -115,7 +115,27 @@ const updateUser = async (id, userData) => {
 // Fonction pour mettre à jour l'avatar d'un utilisateur
 const updateAvatar = async (user_id, avatar) => {
 const result = await authModel.updateAvatar(user_id, avatar);
-return result
+const user = await authModel.findById(user_id);
+
+// Assignation d'un nouveau TOKEN contenant la nouvelle photo de profil
+// (sans ça, le token en localStorage garde l'ancien avatar jusqu'à la prochaine connexion)
+const token = jwt.sign(
+  {
+    id: user.id,
+    firstname: user.firstname,
+    lastname: user.lastname,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    phone: user.phone,
+    city: user.city,
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "2h" }
+);
+
+return { result, token }
 
 }
 

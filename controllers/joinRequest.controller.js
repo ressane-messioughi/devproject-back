@@ -5,8 +5,11 @@ import socketService from '../services/socket.service.js';
 const createRequest = async (req, res) => {
   const { team_code } = req.body;
   const user_id = req.user.id;
+  const user = req.user
+  
   const {result, project} = await joinRequestService.createRequest(team_code, user_id);
-  socketService.joinProject(result, {project}, req.user)
+  console.log("Project", project, "Result", result, "User", user)
+  socketService.joinProject(project, user, result)
   return res.status(201).json({ message: 'Demande envoyée avec succès ! ✅', result });
 };
 
@@ -22,6 +25,7 @@ const acceptRequest = async (req, res) => {
   const { id_request } = req.params;
   const result = await joinRequestService.acceptRequest(id_request);
   socketService.memberJoinedProject(result)
+  socketService.joinRequestAccepted(result.user_id, { ...result.project, role: 'MEMBER' })
   return res.status(201).json({ message: 'Demande accepté avec succès ! ✅', result });
 };
 

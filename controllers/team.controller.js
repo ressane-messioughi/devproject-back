@@ -18,7 +18,29 @@ const deleteTeamUser = async (req, res) => {
     result,
   });
 };
+// Fonction pour modifier le team_role d'un membre (req.team fourni par le middleware isProjectOwner)
+const updateTeamRole = async (req, res) => {
+  const { users_id } = req.params;
+  const { team_role } = req.body;
+  const result = await teamService.updateTeamRole(req.team, users_id, team_role);
+  return res.status(200).json({
+    message: "Rôle mis à jour avec succès",
+    result,
+  });
+};
+// Fonction pour retirer un membre de l'équipe (req.team fourni par le middleware isProjectOwner)
+const removeMember = async (req, res) => {
+  const { users_id, id_project } = req.params;
+  const result = await teamService.removeMember(req.team, users_id);
+  socketService.memberRemoved(users_id, id_project);
+  return res.status(200).json({
+    message: "Membre supprimé avec succès",
+    result,
+  });
+};
 export default {
   getUserTeam,
   deleteTeamUser,
+  updateTeamRole,
+  removeMember,
 };

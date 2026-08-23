@@ -43,9 +43,17 @@ const remove = async (id_task) => {
   const [result] = await db.execute(sql, [id_task]);
   return result;
 };
+// Fonction pour supprimer toutes les tâches d'un projet
+const removeByProjectId = async (project_id) => {
+  const sql = 'DELETE FROM task WHERE project_id = ?';
+  const [result] = await db.execute(sql, [project_id]);
+  return result;
+};
+
 export default {
   findAll,
   create,
   update,
   remove,
+  removeByProjectId,
 };
