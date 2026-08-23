@@ -1,23 +1,45 @@
-import express from "express";
+import express from 'express';
 
-import {
-  createProject,
-  getProjects,
-  getProjectById,
-  updateProject,
-  deleteProject,
-} from "../controllers/project.controller.js";
+import projectController from '../controllers/project.controller.js';
+import joinRequestController from '../controllers/joinRequest.controller.js';
+import { authenticate } from '../middleware/auth.middleware.js';
+import { isProjectOwner } from '../middleware/isProjectOwner.middleware.js';
+import validate from '../middleware/validate.js';
+import { validateProjectBody, validateJoinBody } from '../validators/project.validator.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-router.get("/", getProjects);
+// Récupération de tous les projets
+router.get('/', authenticate, projectController.getAllProject);
 
-router.get("/:id", getProjectById);
+// Récupération de tous les projets auxquels l'utilisateur appartient
+router.get("/my-project", authenticate, projectController.getMyProject)
 
-router.post("/", createProject);
+// Récupération de toutes les demandes de rejoindre un projet
+router.get("/:id_project/requests", authenticate, joinRequestController.getAllRequestByProject)
 
-router.put("/:id", updateProject);
+// Accepter une demande de rejoindre un projet (uniquement le owner)
+router.put("/:id_project/requests/:id_request/accept", authenticate, isProjectOwner, joinRequestController.acceptRequest);
 
-router.delete("/:id", deleteProject);
+// Refuser une demande de rejoindre un projet (uniquement le owner)
+router.put("/:id_project/requests/:id_request/refuse", authenticate, isProjectOwner, joinRequestController.refuseRequest);
+
+// Récupération d'un projet par son ID
+router.get('/:id_project', authenticate, projectController.getProjectById);
+
+// Création d'un nouveau projet
+router.post('/', authenticate, validateProjectBody, validate, projectController.createProject);
+
+// Mise à jour d'un projet existant
+router.put('/:id_project', authenticate, validateProjectBody, validate, projectController.updateProject);
+
+// Suppression d'un projet existant (uniquement le owner)
+router.delete('/:id_project', authenticate, isProjectOwner, projectController.removeProject);
+
+// Création d'une demande de rejoindre un projet
+router.post("/join", authenticate, validateJoinBody, validate, joinRequestController.createRequest);
+
+
+
 
 export default router;

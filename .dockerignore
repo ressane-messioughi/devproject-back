@@ -1,0 +1,10 @@
+# Ce qui ne doit jamais entrer dans l'image
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+.claude
+Dockerfile
+.dockerignore
+*.test.js

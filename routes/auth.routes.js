@@ -1,19 +1,23 @@
-import express from "express";
+    import express from 'express';
+    import {authenticate} from '../middleware/auth.middleware.js'
+    import upload from '../middleware/upload.middleware.js';
+    import validate from '../middleware/validate.js';
+    import { validateAuthBody, validateRegisterBody } from '../validators/auth.validator.js';
 
-import {
-  register,
-  login,
-  getMe,
-  logout,
-} from "../controllers/auth.controller.js";
+    import { updateUser , login, register, updateAvatar } from '../controllers/auth.controller.js';
 
-const router = express.Router();
+    const router = express.Router();
 
-router.post("/register", register);
+    // Route pour l'inscription d'un nouvel utilisateur
+    router.post('/register', validateRegisterBody, validate, register);
 
-router.post("/login", login);
+    // Route pour la connexion d'un utilisateur
+    router.post('/login', validateAuthBody, validate, login);
 
-router.get("/me", getMe);
+    // Route pour mettre à jour les informations d'un utilisateur
+    router.patch('/:id', authenticate, updateUser);
 
+    // Route pour mettre à jour l'avatar d'un utilisateur
+    router.put("/me/avatar", authenticate,upload.single("avatar"),updateAvatar);
 
-export default router;
+    export default router;
