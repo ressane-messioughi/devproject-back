@@ -30,47 +30,47 @@ socket.on("identify", ({ user_id }) => {
   socket.join(`user_${user_id}`);
 });
 
-socket.on("joinProjectRoom", (data) => {
-    const { id_project, user } = data || {};
-    if (!id_project || !user) return;
+  socket.on("joinProjectRoom", (data) => {
+      const { id_project, user } = data || {};
+      if (!id_project || !user) return;
 
-    const room = `project_${id_project}`;
+      const room = `project_${id_project}`;
 
-    // CORRECTIF : si l'utilisateur était déjà dans une autre salle (changement de projet),
-    // on le fait proprement en sortir avant de le faire rejoindre la nouvelle, sinon il
-    // reste "connecté" pour toujours dans l'ancien projet aux yeux des autres membres.
-    if (socket.data.room && socket.data.room !== room) {
-      leaveCurrentRoom(io, socket);
-    }
+      // CORRECTIF : si l'utilisateur était déjà dans une autre salle (changement de projet),
+      // on le fait proprement en sortir avant de le faire rejoindre la nouvelle, sinon il
+      // reste "connecté" pour toujours dans l'ancien projet aux yeux des autres membres.
+      if (socket.data.room && socket.data.room !== room) {
+        leaveCurrentRoom(io, socket);
+      }
 
-    socket.join(room);
+      socket.join(room);
 
-    socket.data.room = room;
-    socket.data.userId = user.id;
+      socket.data.room = room;
+      socket.data.userId = user.id;
 
-    if (!connectedUsers[room]) {
-      connectedUsers[room] = [];
-    }
+      if (!connectedUsers[room]) {
+        connectedUsers[room] = [];
+      }
 
-    const alreadyExist = connectedUsers[room].find(
-      (item) => item.id === user.id
-    );
+      const alreadyExist = connectedUsers[room].find(
+        (item) => item.id === user.id
+      );
 
-    if (!alreadyExist) {
-      connectedUsers[room].push({
-        id: user.id,
-        username: user.username,
-        avatar: user.avatar,
-      });
-      socket.to(room).emit("userConnected", {
-    username: user.username,
-    avatar: user.avatar,
-      });
-    }
+      if (!alreadyExist) {
+        connectedUsers[room].push({
+          id: user.id,
+          username: user.username,
+          avatar: user.avatar,
+        });
+        socket.to(room).emit("userConnected", {
+      username: user.username,
+      avatar: user.avatar,
+        });
+      }
 
 
-    io.to(room).emit("connectedUsers", connectedUsers[room]);
-  });
+      io.to(room).emit("connectedUsers", connectedUsers[room]);
+    });
 
  socket.on("leaveProjectRoom", () => {
    leaveCurrentRoom(io, socket);

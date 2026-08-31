@@ -17,9 +17,13 @@ const app = express();
 // Création d'une instance de serveur HTTP
 const server = createServer(app);
 // Création d'une instance de Socket.IO contenant le serveur HTTP + configuration CORS
+const originesAutorisees = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:8080'];
+
 export const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173','http://localhost:5174'],
+    origin: originesAutorisees,
     methods: ['GET', 'POST'],
   },
 });
@@ -31,11 +35,7 @@ configureSocket(io);
 
 const PORT = process.env.PORT || 3000;
 
-app.use(
-  cors({
-    origin: ['http://localhost:5173','http://localhost:5174'],
-  }),
-);
+app.use(cors({ origin: originesAutorisees }));
 
 app.use(express.json());
 

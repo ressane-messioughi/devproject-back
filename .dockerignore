@@ -8,3 +8,7 @@ npm-debug.log
 Dockerfile
 .dockerignore
 *.test.js
+
+# Documentation : elle n'a rien a faire dans une image d'execution
+*.md
+!README.md
