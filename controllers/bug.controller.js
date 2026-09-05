@@ -7,7 +7,7 @@ import cloudinary from '../config/cloudinary.js';
 const getBugByProject = async (req, res) => {
   const { id_project: project_id } = req.params;
   const result = await bugsService.getProjectBug(project_id);
-  return res.status(200).json({ message: 'Liste des bugs du projet chargé', result });
+  return res.status(200).json({ message: 'Liste des bugs du projet chargée', result });
 };
 
 // Fonction pour créer un bug (avec une capture d'écran obligatoire, uploadée sur Cloudinary)
@@ -57,7 +57,7 @@ const createBug = async (req, res) => {
   socketService.newBug(project_id, newBug);
   socketService.bugNotifyTeam(project_id, req.user, title);
 
-  return res.status(200).json({ message: 'Bug créée avec succès !', result });
+  return res.status(200).json({ message: 'Bug créé avec succès !', result });
 };
 
 // Fonction pour modifier le titre et la description d'un bug (uniquement l'auteur)
@@ -69,7 +69,7 @@ const updateBug = async (req, res) => {
 
   socketService.bugUpdated(project_id, { id_bug: Number(id_bug), title, description });
 
-  return res.json({ message: 'Bug mise à jour avec succès !', result });
+  return res.json({ message: 'Bug mis à jour avec succès !', result });
 };
 
 // Fonction pour changer le statut d'un bug (n'importe quel membre de l'équipe)

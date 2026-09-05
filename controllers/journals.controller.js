@@ -36,7 +36,7 @@ const createMessage = async (req, res) => {
   socketService.newJournalMessage(id_project, newMessage)
   socketService.journalNotifyTeam(id_project, user, title)
 // Mise à jour du composant Journal en temps réel pour tous les utilisateurs connectés au projet
-    return res.status(201).json({result, message : 'Message créer avec succès !'}) 
+    return res.status(201).json({result, message : 'Message créé avec succès !'}) 
 };
 
 // Fonction pour modifier un message du journal d'un projet

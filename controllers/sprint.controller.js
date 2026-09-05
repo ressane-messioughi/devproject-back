@@ -11,7 +11,7 @@ const createSprint = async (req, res) => {
   const { id_project } = req.params;
   const { name, start_date, end_date, status } = req.body;
   const result = await sprintService.createSprint(name, start_date, end_date, status, id_project);
-  return res.status(201).json({ message: 'Sprint créée avec succès !', result });
+  return res.status(201).json({ message: 'Sprint créé avec succès !', result });
 };
 // Fonction pour mettre à jour un sprint
 const updateSprint = async (req, res) => {
