@@ -12,7 +12,7 @@ const createRepository = async (req, res) => {
   const { id_project } = req.params;
   const { name, url, branch } = req.body;
   const result = await githubService.createRepository(name, url, branch, id_project);
-  return res.status(201).json({ message: 'Répertoire créée aevc succès !', result });
+  return res.status(201).json({ message: 'Répertoire créé avec succès !', result });
 };
 
 // Fonction pour mettre à jour un répertoire

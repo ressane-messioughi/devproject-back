@@ -26,14 +26,14 @@ const acceptRequest = async (req, res) => {
   const result = await joinRequestService.acceptRequest(id_request);
   socketService.memberJoinedProject(result)
   socketService.joinRequestAccepted(result.user_id, { ...result.project, role: 'MEMBER' })
-  return res.status(201).json({ message: 'Demande accepté avec succès ! ✅', result });
+  return res.status(201).json({ message: 'Demande acceptée avec succès ! ✅', result });
 };
 
 // Fonction pour refuser une demande de rejoindre un projet
 const refuseRequest = async (req, res) => {
   const { id_request } = req.params;
   const result = await joinRequestService.refuseRequest(id_request);
-  return res.status(200).json({ message: 'Demannde refusé avec succès ! ⛔️', result });
+  return res.status(200).json({ message: 'Demande refusée avec succès ! ⛔️', result });
 };
 
 export default {

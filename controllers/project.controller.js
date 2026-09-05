@@ -4,13 +4,13 @@ import socketService from '../services/socket.service.js';
 // Fonction pour récupérer tous les projets
 const getAllProject = async (req, res) => {
   const result = await projectService.getAll();
-  return res.status(201).json(result);
+  return res.status(200).json(result);
 };
 // Fonction pour récupérer un projet par son ID
 const getProjectById = async (req, res) => {
   const { id_project } = req.params;
   const result = await projectService.getById(id_project);
-  return res.status(201).json(result);
+  return res.status(200).json(result);
 };
 // Fonction pour récupérer les projets d'un utilisateur
 const getMyProject = async (req, res) => {
@@ -31,20 +31,20 @@ const createProject = async (req, res) => {
     owner_id: result.owner_id
   };
   socketService.newProjectList(newProject)
-  return res.status(200).json({ result, message: 'Projet créer avec succès !' });
+  return res.status(201).json({ result, message: 'Projet créé avec succès !' });
 };
 // Fonction pour mettre à jour un projet
 const updateProject = async (req, res) => {
   const { id_project } = req.params;
   const { name, description } = req.body;
   const result = await projectService.updateProject(name, description, id_project);
-  return res.status(200).json({ result, message: 'Projet mise à jour' });
+  return res.status(200).json({ result, message: 'Projet mis à jour' });
 };
 // Fonction pour supprimer un projet (req.team fourni par le middleware isProjectOwner)
 const removeProject = async (req, res) => {
   const { id_project } = req.params;
   const result = await projectService.deleteProject(id_project, req.team);
-  return res.status(201).json({ result, message: 'Projet supprimé avec succès' });
+  return res.status(200).json({ result, message: 'Projet supprimé avec succès' });
 };
 export default {
   getAllProject,
