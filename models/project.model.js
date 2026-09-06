@@ -25,8 +25,6 @@ const findByUserId = async (user_id) => {
 const create = async (name, description, owner_id, team_code, trello_url) => {
   const sql =
     'INSERT INTO project (name,description,owner_id,team_code,trello_url) VALUES (?,?,?,?,?)';
-  // mysql2 refuse "undefined" comme paramètre (contrairement à SQL NULL) : trello_url
-  // étant optionnel, on le normalise explicitement quand il n'est pas fourni.
   const [result] = await db.execute(sql, [
     name,
     description,
