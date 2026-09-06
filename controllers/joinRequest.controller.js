@@ -4,10 +4,9 @@ import socketService from '../services/socket.service.js';
 // Fonction pour créer une demande de rejoindre un projet
 const createRequest = async (req, res) => {
   const { team_code } = req.body;
-  const user_id = req.user.id;
   const user = req.user
   
-  const {result, project} = await joinRequestService.createRequest(team_code, user_id);
+  const {result, project} = await joinRequestService.createRequest(team_code, user.id);
   console.log("Project", project, "Result", result, "User", user)
   socketService.joinProject(project, user, result)
   return res.status(201).json({ message: 'Demande envoyée avec succès ! ✅', result });
