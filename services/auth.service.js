@@ -29,7 +29,7 @@ const registerUser = async ({firstname, lastname, username, email, password, ava
   // Vérification si l'email est saisie est déjà contenu dans la base de donnée / logique (1 compte = 1 adresse mail)
   const existingUser = await authModel.findByEmail(email)
     if (existingUser.length > 0) {
-        throw new AppError ("❌ Email déjà utilisé ❌")
+        throw new AppError ("❌ Email déjà utilisé ❌", 409)
     }
   // Hashage du Password saisie à l'enregistrement
     const hashedPassword = await bcrypt.hash(password, 10)
