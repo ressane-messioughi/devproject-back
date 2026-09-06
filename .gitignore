@@ -22,3 +22,6 @@ logs
 
 # Outils locaux
 .aider*
+
+# Hooks git locaux : ils dependent de la machine et n'ont pas a etre publies.
+.husky
