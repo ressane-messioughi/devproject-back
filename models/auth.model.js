@@ -27,7 +27,7 @@ const register = async (
     username || 'User',
     email,
     hashedPassword,
-    avatar || null,
+    avatar || "https://res.cloudinary.com/dq7papymj/image/upload/v1788646671/abstract-user-flat-4_b0fzms.webp",
     city || null,
     phone || null,
     role || 'USER',
