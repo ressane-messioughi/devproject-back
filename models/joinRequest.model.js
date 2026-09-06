@@ -40,6 +40,13 @@ const findAllProjectById = async (project_id) => {
   return result;
 };
 
+// Fonction pour vérifier si une demande est déjà en attente pour cet utilisateur sur ce projet
+const findPendingByUserAndProject = async (project_id, user_id) => {
+  const sql = `SELECT id_request FROM join_request WHERE project_id = ? AND user_id = ? AND status = 'PENDING'`;
+  const [result] = await db.execute(sql, [project_id, user_id]);
+  return result[0];
+};
+
 // Fonction pour mettre à jour le statut d'une demande de rejoindre un projet
 const updateStatus = async (id_request, status) => {
   const sql = 'UPDATE join_request SET status = ? WHERE id_request = ?';
@@ -76,6 +83,7 @@ export default {
   findProjectByTeamCode,
   create,
   findAllProjectById,
+  findPendingByUserAndProject,
   updateStatus,
   findById,
   removeByProjectId,
