@@ -5,7 +5,7 @@ import cloudinary from '../config/cloudinary.js';
 export const login = async (req, res) => {
   const { email, password } = req.body;
   const token = await authService.loginUser({ email, password });
-  return res.json(token);
+  return res.status(200).json(token);
 };
 
 // Fonction Inscription
