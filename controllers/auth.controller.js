@@ -22,7 +22,7 @@ export const register = async (req, res) => {
     phone,
     role,
   });
-  return res.json(user.insertId);
+  return res.status(201).json({ message: 'Utilisateur créé avec succès', user: { id: user.insertId } });
 };
 
 // Fonction Mise à jour de l'utilisateur
