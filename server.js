@@ -13,6 +13,7 @@ import sprintRoute from './routes/sprint.routes.js';
 import githubRoute from './routes/github.routes.js';
 import bugRoute from './routes/bug.routes.js';
 import schemaRoute from './routes/schema.routes.js';
+import documentRoute from './routes/document.routes.js';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import configureSocket from './socket/index.js';
@@ -23,7 +24,14 @@ const server = createServer(app);
 // Création d'une instance de Socket.IO contenant le serveur HTTP + configuration CORS
 const originesAutorisees = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',')
-  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:8080'];
+  : [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      // Port par défaut de "vite preview", utilisé pour tester le build de production
+      // en local : sans lui, l'API refuse les requêtes et la console se remplit d'erreurs.
+      'http://localhost:4173',
+      'http://localhost:8080',
+    ];
 
 export const io = new Server(server, {
   cors: {
@@ -88,6 +96,7 @@ app.use('/api/project/:id_project/task', taskRoute);
 app.use('/api/project/:id_project/bug', bugRoute);
 app.use('/api/project/:id_project/sprint', sprintRoute);
 app.use('/api/project/:id_project/schema', schemaRoute);
+app.use('/api/project/:id_project/document', documentRoute);
 app.use('/api/project/:id_project/github', githubRoute);
 app.use('/api/project/:id_project/team', teamRoute);
 

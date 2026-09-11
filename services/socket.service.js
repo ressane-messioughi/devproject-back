@@ -202,6 +202,31 @@ const githubUpdated = async (id_project) => {
   io.to(`project_${id_project}`).emit('githubUpdated');
 }
 
+// Diffuse le depot d un document a toute la salle du projet
+const newDocument = async (id_project, documentData) => {
+io.to(`project_${id_project}`).emit("newDocument", documentData);
+}
+
+// Notification en temps reel pour toute l equipe lorsqu un document est depose
+const documentNotifyTeam = async (id_project, user, name) => {
+io.to(`project_${id_project}`).emit("documentNotification", {
+  project_id: id_project,
+  username: user.username,
+  avatar: user.avatar,
+  name,
+});
+}
+
+// Diffuse le renommage d un document a toute la salle du projet
+const documentUpdated = async (id_project, updatedDocument) => {
+  io.to(`project_${id_project}`).emit('documentUpdated', updatedDocument);
+}
+
+// Diffuse la suppression d un document a toute la salle du projet
+const documentDeleted = async (id_project, id_document) => {
+  io.to(`project_${id_project}`).emit('documentDeleted', { id_document });
+}
+
 
 export default {
     deleteProject,
@@ -234,5 +259,9 @@ export default {
     newSchemaComment,
     schemaCommentDeleted,
     schemaApprovalUpdated,
-    githubUpdated
+    githubUpdated,
+    newDocument,
+    documentNotifyTeam,
+    documentUpdated,
+    documentDeleted
 }
