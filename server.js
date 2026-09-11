@@ -14,6 +14,8 @@ import githubRoute from './routes/github.routes.js';
 import bugRoute from './routes/bug.routes.js';
 import schemaRoute from './routes/schema.routes.js';
 import documentRoute from './routes/document.routes.js';
+import adminRoute from './routes/admin.routes.js';
+import ticketRoute from './routes/ticket.routes.js';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import configureSocket from './socket/index.js';
@@ -99,6 +101,8 @@ app.use('/api/project/:id_project/schema', schemaRoute);
 app.use('/api/project/:id_project/document', documentRoute);
 app.use('/api/project/:id_project/github', githubRoute);
 app.use('/api/project/:id_project/team', teamRoute);
+app.use('/api/support', ticketRoute);
+app.use('/api/admin', adminRoute);
 
 // Middleware d'erreur global — doit rester le tout dernier app.use().
 // Sans lui, une AppError levée dans un service retombe sur le gestionnaire
