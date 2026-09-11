@@ -24,12 +24,14 @@ function leaveCurrentRoom(io, socket) {
 // Fonction pour vérifier que l'utilisateur fait bien partie de l'équipe du projet.
 // C'est l'équivalent temps réel du contrôle d'accès des routes HTTP : appartenir au
 // projet est la condition pour en recevoir les évènements.
-async function isProjectMember(user_id, id_project) {
+// Renvoie la ligne team_user quand la personne est membre, null sinon — le team_role
+// qu'elle contient sert à afficher le badge de rôle dans la barre des membres en ligne.
+async function getProjectMembership(user_id, id_project) {
   const team = await teamModel.findByProjectId(id_project);
-  if (!team) return false;
+  if (!team) return null;
 
   const userRole = await teamModel.getUserRole(user_id, team.id_team);
-  return Boolean(userRole);
+  return userRole || null;
 }
 
 export default function registerRoomEvents(io, socket) {
@@ -41,7 +43,7 @@ export default function registerRoomEvents(io, socket) {
 
       // Contrôle d'accès : sans lui, un client pouvait rejoindre la salle de n'importe
       // quel projet en envoyant simplement son identifiant.
-      const membre = await isProjectMember(user.id, id_project);
+      const membre = await getProjectMembership(user.id, id_project);
       if (!membre) return;
 
       const room = `project_${id_project}`;
@@ -71,6 +73,7 @@ export default function registerRoomEvents(io, socket) {
           id: user.id,
           username: user.username,
           avatar: user.avatar,
+          team_role: membre.team_role,
         });
         socket.to(room).emit("userConnected", {
       username: user.username,

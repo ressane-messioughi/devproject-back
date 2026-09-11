@@ -1,4 +1,5 @@
 import sprintService from '../services/sprint.service.js';
+import socketService from '../services/socket.service.js';
 
 // Fonction pour récupérer les sprints d'un projet
 const getProjectSprint = async (req, res) => {
@@ -11,19 +12,43 @@ const createSprint = async (req, res) => {
   const { id_project } = req.params;
   const { name, start_date, end_date, status } = req.body;
   const result = await sprintService.createSprint(name, start_date, end_date, status, id_project);
+
+  const newSprint = {
+    id_sprint: result.insertId,
+    name,
+    start_date,
+    end_date,
+    status,
+    project_id: Number(id_project),
+  };
+  socketService.newSprint(id_project, newSprint);
+  socketService.sprintNotifyTeam(id_project, req.user, name);
+
   return res.status(201).json({ message: 'Sprint créé avec succès !', result });
 };
 // Fonction pour mettre à jour un sprint
 const updateSprint = async (req, res) => {
-  const { id_sprint } = req.params;
+  const { id_project, id_sprint } = req.params;
   const { name, start_date, end_date, status } = req.body;
   const result = await sprintService.updateSprint(id_sprint, name, start_date, end_date, status);
+
+  socketService.sprintUpdated(id_project, {
+    id_sprint: Number(id_sprint),
+    name,
+    start_date,
+    end_date,
+    status,
+  });
+
   return res.status(200).json({ message: 'Sprint modifié avec succès !', result });
 };
 // Fonction pour supprimer un sprint
 const deleteSprint = async (req, res) => {
-  const { id_sprint } = req.params;
+  const { id_project, id_sprint } = req.params;
   const result = await sprintService.deleteSprint(id_sprint);
+
+  socketService.sprintDeleted(id_project, Number(id_sprint));
+
   return res.status(200).json({ message: 'Sprint supprimé avec succès !', result });
 };
 export default {

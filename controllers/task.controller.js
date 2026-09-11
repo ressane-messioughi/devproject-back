@@ -24,6 +24,8 @@ const createTask = async (req, res) => {
         created_at: new Date(),
     };
     socketService.newTask(id_project, newTask);
+    // Notification adressee a la seule personne concernee, via sa salle personnelle
+    socketService.taskAssignedNotify(assigned_to, req.user, title);
 
     return res.status(201).json({result, message : "Tâche créée avec succès !"})
 }

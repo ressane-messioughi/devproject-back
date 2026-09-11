@@ -125,6 +125,83 @@ const taskDeleted = async (id_project, id_task) => {
   io.to(`project_${id_project}`).emit('taskDeleted', { id_task });
 }
 
+// Notifie UNIQUEMENT la personne a qui la tache vient d etre confiee.
+// Passe par sa salle personnelle "user_<id>" et non par celle du projet : le reste de
+// l equipe n a pas a recevoir cette notification, et la personne la recoit meme si
+// elle a un autre projet selectionne a ce moment-la.
+const taskAssignedNotify = async (user_id, user, title) => {
+io.to(`user_${user_id}`).emit("taskAssignedNotification", {
+  username: user.username,
+  avatar: user.avatar,
+  title,
+});
+}
+
+// Notification en temps reel pour toute l equipe lorsqu un schema est publie
+const schemaNotifyTeam = async (id_project, user, name) => {
+io.to(`project_${id_project}`).emit("schemaNotification", {
+  project_id: id_project,
+  username: user.username,
+  avatar: user.avatar,
+  name,
+});
+}
+
+// Notification en temps reel pour toute l equipe au demarrage d un nouveau sprint
+const sprintNotifyTeam = async (id_project, user, name) => {
+io.to(`project_${id_project}`).emit("sprintNotification", {
+  project_id: id_project,
+  username: user.username,
+  avatar: user.avatar,
+  name,
+});
+}
+
+// Notification en temps reel pour toute l equipe a la reception d une demande d adhesion
+const joinRequestNotifyTeam = async (id_project, user) => {
+io.to(`project_${id_project}`).emit("joinRequestNotification", {
+  project_id: id_project,
+  username: user.username,
+  avatar: user.avatar,
+});
+}
+
+// Diffuse l ajout d un sprint a toute la salle du projet
+const newSprint = async (id_project, sprintData) => {
+io.to(`project_${id_project}`).emit("newSprint", sprintData);
+}
+
+// Diffuse la modification d un sprint (renommage, dates, statut) a toute la salle
+const sprintUpdated = async (id_project, updatedSprint) => {
+  io.to(`project_${id_project}`).emit('sprintUpdated', updatedSprint);
+}
+
+// Diffuse la suppression d un sprint a toute la salle du projet
+const sprintDeleted = async (id_project, id_sprint) => {
+  io.to(`project_${id_project}`).emit('sprintDeleted', { id_sprint });
+}
+
+// Diffuse l ajout d un commentaire sur un schema a toute la salle du projet
+const newSchemaComment = async (id_project, commentData) => {
+io.to(`project_${id_project}`).emit("newSchemaComment", commentData);
+}
+
+// Diffuse la suppression d un commentaire a toute la salle du projet
+const schemaCommentDeleted = async (id_project, data) => {
+  io.to(`project_${id_project}`).emit('schemaCommentDeleted', data);
+}
+
+// Diffuse l approbation ou son retrait a toute la salle du projet, pour que les avatars
+// des approbateurs apparaissent sur la miniature chez tout le monde
+const schemaApprovalUpdated = async (id_project, data) => {
+  io.to(`project_${id_project}`).emit('schemaApprovalUpdated', data);
+}
+
+// Diffuse l ajout ou le retrait d un depot GitHub a toute la salle du projet
+const githubUpdated = async (id_project) => {
+  io.to(`project_${id_project}`).emit('githubUpdated');
+}
+
 
 export default {
     deleteProject,
@@ -146,5 +223,16 @@ export default {
     projectUpdated,
     newTask,
     taskUpdated,
-    taskDeleted
+    taskDeleted,
+    taskAssignedNotify,
+    schemaNotifyTeam,
+    sprintNotifyTeam,
+    joinRequestNotifyTeam,
+    newSprint,
+    sprintUpdated,
+    sprintDeleted,
+    newSchemaComment,
+    schemaCommentDeleted,
+    schemaApprovalUpdated,
+    githubUpdated
 }

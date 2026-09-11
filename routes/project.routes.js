@@ -30,8 +30,8 @@ router.get('/:id_project', authenticate, projectController.getProjectById);
 // Création d'un nouveau projet
 router.post('/', authenticate, validateProjectBody, validate, projectController.createProject);
 
-// Mise à jour d'un projet existant
-router.put('/:id_project', authenticate, validateProjectBody, validate, projectController.updateProject);
+// Mise à jour d'un projet existant, renommage compris (uniquement le owner)
+router.put('/:id_project', authenticate, isProjectOwner, validateProjectBody, validate, projectController.updateProject);
 
 // Suppression d'un projet existant (uniquement le owner)
 router.delete('/:id_project', authenticate, isProjectOwner, projectController.removeProject);

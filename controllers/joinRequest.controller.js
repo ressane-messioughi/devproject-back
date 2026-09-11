@@ -9,6 +9,7 @@ const createRequest = async (req, res) => {
   const {result, project} = await joinRequestService.createRequest(team_code, user.id);
   console.log("Project", project, "Result", result, "User", user)
   socketService.joinProject(project, user, result)
+  socketService.joinRequestNotifyTeam(project.id_project, user)
   return res.status(201).json({ message: 'Demande envoyée avec succès ! ✅', result });
 };
 
