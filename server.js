@@ -9,6 +9,7 @@ import taskRoute from './routes/task.routes.js';
 import sprintRoute from './routes/sprint.routes.js';
 import githubRoute from './routes/github.routes.js';
 import bugRoute from './routes/bug.routes.js';
+import schemaRoute from './routes/schema.routes.js';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import configureSocket from './socket/index.js';
@@ -50,7 +51,7 @@ app.use('/api/project/:id_project/journal', journalRoute);
 app.use('/api/project/:id_project/task', taskRoute);
 app.use('/api/project/:id_project/bug', bugRoute);
 app.use('/api/project/:id_project/sprint', sprintRoute);
-// app.use("/api/project/:id_project/schema", schemaRoute)
+app.use('/api/project/:id_project/schema', schemaRoute);
 app.use('/api/project/:id_project/github', githubRoute);
 app.use('/api/project/:id_project/team', teamRoute);
 
