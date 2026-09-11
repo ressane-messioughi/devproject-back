@@ -1,4 +1,5 @@
 import { connectedUsers } from "../state/userOnline.socket.js";
+import teamModel from "../../models/team.model.js";
 
 // Fonction pour faire quitter à un socket la salle dans laquelle il se trouve actuellement
 // (retire l'utilisateur de connectedUsers et prévient les autres membres de la salle)
@@ -20,19 +21,28 @@ function leaveCurrentRoom(io, socket) {
   socket.data.userId = null;
 }
 
+// Fonction pour vérifier que l'utilisateur fait bien partie de l'équipe du projet.
+// C'est l'équivalent temps réel du contrôle d'accès des routes HTTP : appartenir au
+// projet est la condition pour en recevoir les évènements.
+async function isProjectMember(user_id, id_project) {
+  const team = await teamModel.findByProjectId(id_project);
+  if (!team) return false;
+
+  const userRole = await teamModel.getUserRole(user_id, team.id_team);
+  return Boolean(userRole);
+}
+
 export default function registerRoomEvents(io, socket) {
+  // L'utilisateur du socket vient du jeton vérifié dans socket/index.js
+  const user = socket.data.user;
 
-// Salle personnelle "user_<id>", rejointe dès la connexion (indépendamment de tout projet
-// sélectionné) — permet de notifier un utilisateur directement, même s'il n'est pas encore
-// dans la salle d'un projet donné (ex: acceptation d'une demande d'adhésion).
-socket.on("identify", ({ user_id }) => {
-  if (!user_id) return;
-  socket.join(`user_${user_id}`);
-});
+  socket.on("joinProjectRoom", async ({ id_project } = {}) => {
+      if (!id_project) return;
 
-  socket.on("joinProjectRoom", (data) => {
-      const { id_project, user } = data || {};
-      if (!id_project || !user) return;
+      // Contrôle d'accès : sans lui, un client pouvait rejoindre la salle de n'importe
+      // quel projet en envoyant simplement son identifiant.
+      const membre = await isProjectMember(user.id, id_project);
+      if (!membre) return;
 
       const room = `project_${id_project}`;
 
@@ -79,13 +89,21 @@ socket.on("identify", ({ user_id }) => {
  socket.on("getConnectedUsers", ({ id_project }) => {
   const room = `project_${id_project}`;
 
+  // On ne renvoie la liste que pour la salle où l'utilisateur se trouve réellement
+  if (socket.data.room !== room) {
+    return socket.emit("connectedUsers", []);
+  }
+
   socket.emit("connectedUsers", connectedUsers[room] || []);
 });
 
 // Diffusion d'un changement de photo de profil à tous les membres de la salle actuelle
-socket.on("avatarUpdated", ({ user_id, avatar }) => {
+socket.on("avatarUpdated", ({ avatar }) => {
   const room = socket.data.room;
-  if (!room || !user_id || !avatar) return;
+  if (!room || !avatar) return;
+
+  // L'identifiant vient du jeton : personne ne peut changer l'avatar affiché d'un autre membre
+  const user_id = user.id;
 
   if (connectedUsers[room]) {
     const entry = connectedUsers[room].find((item) => item.id === user_id);
@@ -98,6 +116,9 @@ socket.on("avatarUpdated", ({ user_id, avatar }) => {
   io.to(room).emit("avatarUpdated", { user_id, avatar });
 });
 
+  // Coupure du transport, quelle qu'en soit la cause (onglet fermé, réseau perdu,
+  // déconnexion volontaire) : Socket.IO émet toujours "disconnect", c'est donc ici que
+  // le nettoyage de connectedUsers doit se faire.
   socket.on("disconnect", () => {
     leaveCurrentRoom(io, socket);
   });
