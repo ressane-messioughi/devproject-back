@@ -36,9 +36,9 @@ const create = async (name, description, owner_id, team_code, trello_url) => {
 };
 
 // Fonction pour mettre à jour un projet
-const update = async (name, description, id_project) => {
-  const sql = 'UPDATE project SET name = ?, description = ? WHERE id_project = ?';
-  const [result] = await db.execute(sql, [name, description, id_project]);
+const update = async (name, description, trello_url, id_project) => {
+  const sql = 'UPDATE project SET name = ?, description = ?, trello_url = ? WHERE id_project = ?';
+  const [result] = await db.execute(sql, [name, description, trello_url ?? null, id_project]);
   return result;
 };
 

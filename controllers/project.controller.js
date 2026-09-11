@@ -36,8 +36,16 @@ const createProject = async (req, res) => {
 // Fonction pour mettre à jour un projet
 const updateProject = async (req, res) => {
   const { id_project } = req.params;
-  const { name, description } = req.body;
-  const result = await projectService.updateProject(name, description, id_project);
+  const { name, description, trello_url } = req.body;
+  const result = await projectService.updateProject(name, description, trello_url, id_project);
+
+  socketService.projectUpdated(id_project, {
+    id_project: Number(id_project),
+    name,
+    description,
+    trello_url: trello_url ?? null,
+  });
+
   return res.status(200).json({ result, message: 'Projet mis à jour' });
 };
 // Fonction pour supprimer un projet (req.team fourni par le middleware isProjectOwner)

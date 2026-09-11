@@ -36,8 +36,8 @@ const createProject = async (name,description,owner_id,trello_url) => {
 }
 
 // Fonction pour mettre à jour un projet
-const updateProject = async (id_project, {name,description}) => {
-const result = await projectModel.update(name,description,id_project);
+const updateProject = async (name, description, trello_url, id_project) => {
+const result = await projectModel.update(name, description, trello_url, id_project);
 return result;
 }
 
