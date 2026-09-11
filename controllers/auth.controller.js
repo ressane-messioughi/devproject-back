@@ -1,5 +1,6 @@
 import authService from '../services/auth.service.js';
 import cloudinary from '../config/cloudinary.js';
+import jwt from 'jsonwebtoken';
 import { COOKIE_NAME, cookieOptions, clearCookieOptions } from '../middleware/cookie.middleware.js';
 
 // Fonction Connexion
@@ -25,8 +26,26 @@ export const logout = async (req, res) => {
 // Fonction qui renvoie l'utilisateur de la session en cours.
 // Elle remplace le décodage du jeton côté navigateur : celui-ci n'y a plus accès, c'est
 // donc le serveur qui dit qui est connecté.
+//
+// Volontairement hors du middleware authenticate : une page publique l'appelle au
+// chargement pour savoir s'il faut afficher la session. Répondre 401 à « qui suis-je ? »
+// alors que la réponse est simplement « personne » remplirait la console du visiteur
+// d'erreurs, sans qu'aucune faute n'ait été commise.
 export const me = async (req, res) => {
-  return res.status(200).json({ user: req.user });
+  const token = req.cookies?.[COOKIE_NAME];
+
+  if (!token) {
+    return res.status(200).json({ user: null });
+  }
+
+  return jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      // Jeton expiré ou trafiqué : on nettoie le cookie au passage
+      res.clearCookie(COOKIE_NAME, clearCookieOptions());
+      return res.status(200).json({ user: null });
+    }
+    return res.status(200).json({ user: decoded });
+  });
 };
 
 // Fonction Inscription

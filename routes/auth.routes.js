@@ -20,9 +20,10 @@
     // Route pour la déconnexion : seul le serveur peut retirer un cookie httpOnly
     router.post('/logout', logout);
 
-    // Route qui indique qui est connecté.
-    // Elle remplace le décodage du jeton dans le navigateur, qui n'y a plus accès.
-    router.get('/me', authenticate, me);
+    // Route qui indique qui est connecté, ou que personne ne l'est.
+    // Sans authenticate : elle doit pouvoir répondre "personne" en 200, y compris
+    // depuis une page publique. Le jeton est vérifié dans le contrôleur.
+    router.get('/me', me);
 
     // Route pour mettre à jour les informations d'un utilisateur
     router.patch('/:id', authenticate, updateUser);
