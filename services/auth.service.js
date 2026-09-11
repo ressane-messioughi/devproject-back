@@ -24,6 +24,19 @@ const loginUser = async ({email, password}) => {
   ) 
   return {token};
 }
+// Fonction pour mettre un numéro de téléphone au format 07.69.46.12.34.
+// La base reçoit ainsi toujours la même écriture, quelle que soit la façon dont
+// l'utilisateur a saisi son numéro : c'est ce qui permet de le réafficher proprement
+// partout sans avoir à le retraiter à chaque lecture.
+const formaterTelephone = (phone) => {
+  if (!phone) return null;
+
+  const chiffres = String(phone).replace(/\D/g, '');
+  if (chiffres.length !== 10) return phone;
+
+  return chiffres.match(/\d{2}/g).join('.');
+}
+
 // Fonction pour enregistrer un nouvel utilisateur
 const registerUser = async ({firstname, lastname, username, email, password, avatar, city, phone, role}) => {
   // Vérification si l'email est saisie est déjà contenu dans la base de donnée / logique (1 compte = 1 adresse mail)
@@ -33,7 +46,7 @@ const registerUser = async ({firstname, lastname, username, email, password, ava
     }
   // Hashage du Password saisie à l'enregistrement
     const hashedPassword = await bcrypt.hash(password, 10)
-    const result = await authModel.register(firstname, lastname, username, email, hashedPassword, avatar, city, phone, role);
+    const result = await authModel.register(firstname, lastname, username, email, hashedPassword, avatar, city, formaterTelephone(phone), role);
     return result
 }
 
@@ -73,6 +86,7 @@ const updateUser = async (id, userData) => {
   }
 
   if (userData.phone !== undefined) {
+    userData.phone = formaterTelephone(userData.phone);
     fields.push("phone = ?");
     values.push(userData.phone);
   }

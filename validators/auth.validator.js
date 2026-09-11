@@ -26,7 +26,7 @@ body("firstname")
 body("lastname")
 .notEmpty().withMessage("Nom obligatoire"),
 
-// username, city et phone sont NOT NULL en base : le formulaire d'inscription les
+// username et city sont NOT NULL en base : le formulaire d'inscription les
 // rend déjà obligatoires côté front, cette validation évite qu'un appel direct à
 // l'API (sans passer par le formulaire) ne fasse remonter une erreur SQL brute.
 body("username")
@@ -35,7 +35,10 @@ body("username")
 body("city")
 .notEmpty().withMessage("Ville obligatoire"),
 
+// Le téléphone est facultatif. Quand il est fourni, on accepte aussi bien 0769461234
+// que 07.69.46.12.34 : la mise au format est faite ensuite par le service, pour que la
+// base ne contienne qu'une seule écriture.
 body("phone")
-.notEmpty().withMessage("Numéro de téléphone obligatoire")
-.matches(/^0[1-9](\.\d{2}){4}$/).withMessage("Format attendu : 07.69.46.12.34"),
+.optional({ checkFalsy: true })
+.matches(/^0[1-9]([\s.-]?\d{2}){4}$/).withMessage("Numéro invalide (ex : 07.69.46.12.34)"),
 ];
