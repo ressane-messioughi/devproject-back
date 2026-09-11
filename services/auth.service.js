@@ -17,18 +17,20 @@ const loginUser = async ({email, password}) => {
     throw new AppError ("Email ou mots de passe invalide ❌", 401 )
   }
   // Assignation d'un TOKEN à la connection contenant les informations de l'utilisateur pour une durée de validité de 2 Heures 
-  const token = jwt.sign({
-    id: users.id, username: users.username, firstname: users.firstname, lastname: users.lastname, role: users.role, avatar: users.avatar, email: users.email, createdAt: users.created_at, phone: users.phone},
-    process.env.JWT_SECRET,
-    {expiresIn: "2h"}
-  ) 
-  return {token};
+  const donnees = {
+    id: users.id, username: users.username, firstname: users.firstname, lastname: users.lastname, role: users.role, avatar: users.avatar, email: users.email, createdAt: users.created_at, phone: users.phone};
+
+  const token = jwt.sign(donnees, process.env.JWT_SECRET, {expiresIn: "2h"})
+
+  // Le jeton part dans un cookie httpOnly que le navigateur ne peut pas lire : les
+  // informations de l'utilisateur doivent donc lui être renvoyées à part.
+  return {token, user: donnees};
 }
 // Fonction pour mettre un numéro de téléphone au format 07.69.46.12.34.
 // La base reçoit ainsi toujours la même écriture, quelle que soit la façon dont
 // l'utilisateur a saisi son numéro : c'est ce qui permet de le réafficher proprement
 // partout sans avoir à le retraiter à chaque lecture.
-const formaterTelephone = (phone) => {
+export const formaterTelephone = (phone) => {
   if (!phone) return null;
 
   const chiffres = String(phone).replace(/\D/g, '');
@@ -103,8 +105,7 @@ const updateUser = async (id, userData) => {
   const user = await authModel.findById(id);
 
 // Assignation d'un nouveau TOKEN à la modification des informations de l'utilisateur contenant les nouvelles informations de l'utilisateur.
-  const token = jwt.sign(
-    {
+  const donnees = {
       id: user.id,
       firstname: user.firstname,
       lastname: user.lastname,
@@ -114,7 +115,10 @@ const updateUser = async (id, userData) => {
       avatar: user.avatar,
       phone: user.phone,
       city: user.city,
-    },
+    };
+
+  const token = jwt.sign(
+    donnees,
     process.env.JWT_SECRET,
     { expiresIn: "2h" }
   );

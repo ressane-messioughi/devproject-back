@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import { apiLimiter } from './middleware/rateLimit.middleware.js';
 import authRoute from './routes/auth.routes.js';
 import projectRoute from './routes/project.routes.js';
 import journalRoute from './routes/journal.routes.js';
@@ -26,6 +29,8 @@ export const io = new Server(server, {
   cors: {
     origin: originesAutorisees,
     methods: ['GET', 'POST'],
+    // Sans credentials, le navigateur n'envoie pas le cookie de session au handshake
+    credentials: true,
   },
 });
 
@@ -36,9 +41,40 @@ configureSocket(io);
 
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: originesAutorisees }));
+// En-têtes de sécurité HTTP : type MIME non deviné, page non affichable dans une iframe
+// d'un autre site, référent limité, HSTS en production.
+// La politique de contenu est écrite à la main : celle de helmet interdit par défaut
+// les images d'un autre domaine, ce qui bloquerait Cloudinary.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+        connectSrc: ["'self'", ...originesAutorisees],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
+
+// credentials: true est indispensable depuis le passage au cookie : sans lui le
+// navigateur refuse d'envoyer le cookie de session sur une requête vers un autre port.
+app.use(cors({ origin: originesAutorisees, credentials: true }));
 
 app.use(express.json());
+
+// Remplit req.cookies, sur lequel s'appuie le middleware d'authentification
+app.use(cookieParser());
+
+// Limiteur général, posé avant les routes
+app.use('/api', apiLimiter);
 
 // Middleware pour logger les requêtes HTTP avec morgan en utilisant le format "combined" pour inclure des informations détaillées sur chaque requête.
 app.use(morgan('combined'));

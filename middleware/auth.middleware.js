@@ -1,14 +1,19 @@
 import jwt from "jsonwebtoken"
+import { COOKIE_NAME } from "./cookie.middleware.js"
 
 export const authenticate = (req, res, next) => {
-    // Récupération de l'en-tête d'autorisation
-const authHeader = req.headers.authorization;
-// Vérification si l'en-tête d'autorisation est présent
-if (!authHeader) {
-    return res.status(401).send("Accès refusé 🔒")
+// Le jeton arrive dans le cookie httpOnly posé à la connexion. Le navigateur le renvoie
+// tout seul à chaque requête, à condition que l'appel soit fait avec credentials.
+let token = req.cookies?.[COOKIE_NAME];
+
+// Repli sur l'en-tête Authorization. Il ne sert plus à l'application, mais permet
+// d'appeler l'API depuis un outil de test sans avoir à gérer les cookies.
+if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        token = authHeader.split(" ")[1];
+    }
 }
-// Suppression des espaces blancs autour du token
-const token = authHeader.split(" ")[1];
 
 // Vérification si le token est présent et valide
 if (!token) {

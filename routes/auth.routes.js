@@ -4,15 +4,25 @@
     import validate from '../middleware/validate.js';
     import { validateAuthBody, validateRegisterBody } from '../validators/auth.validator.js';
 
-    import { updateUser , login, register, updateAvatar } from '../controllers/auth.controller.js';
+    import { authLimiter } from '../middleware/rateLimit.middleware.js';
+
+    import { updateUser , login, register, updateAvatar, logout, me } from '../controllers/auth.controller.js';
 
     const router = express.Router();
 
     // Route pour l'inscription d'un nouvel utilisateur
-    router.post('/register', validateRegisterBody, validate, register);
+    router.post('/register', authLimiter, validateRegisterBody, validate, register);
 
     // Route pour la connexion d'un utilisateur
-    router.post('/login', validateAuthBody, validate, login);
+    // authLimiter compte les échecs : dix par adresse IP sur quinze minutes
+    router.post('/login', authLimiter, validateAuthBody, validate, login);
+
+    // Route pour la déconnexion : seul le serveur peut retirer un cookie httpOnly
+    router.post('/logout', logout);
+
+    // Route qui indique qui est connecté.
+    // Elle remplace le décodage du jeton dans le navigateur, qui n'y a plus accès.
+    router.get('/me', authenticate, me);
 
     // Route pour mettre à jour les informations d'un utilisateur
     router.patch('/:id', authenticate, updateUser);

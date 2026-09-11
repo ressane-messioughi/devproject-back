@@ -1,14 +1,31 @@
 import jwt from "jsonwebtoken"
 import registerRoomEvents from "./handlers/room.socket.js";
+import { COOKIE_NAME } from "../middleware/cookie.middleware.js";
 
 // Middleware d'authentification du socket. Même principe que authenticate pour les routes
 // HTTP, mais joué une seule fois, à l'ouverture du transport.
 // Sans lui, n'importe qui pouvait ouvrir une connexion Socket.IO et demander à rejoindre la
 // salle d'un projet dont il n'est pas membre, donc recevoir en direct ses bugs et son journal.
+// Lecture d'un cookie dans l'en-tête brut du handshake.
+// Écrite ici plutôt qu'ajoutée en dépendance : c'est quatre lignes, et les noms
+// exportés par la bibliothèque cookie ont déjà changé d'une version à l'autre.
+const lireCookie = (entete, nom) => {
+  if (!entete) return undefined;
+
+  const trouve = entete
+    .split(';')
+    .map((morceau) => morceau.trim().split('='))
+    .find(([cle]) => cle === nom);
+
+  return trouve ? decodeURIComponent(trouve.slice(1).join('=')) : undefined;
+};
+
 export const authenticateSocket = (socket, next) => {
-  // Le jeton est transmis dans le handshake, pas dans un en-tête : c'est le canal prévu
-  // par Socket.IO pour l'authentification (socket.auth côté client).
-  const token = socket.handshake.auth?.token;
+  // Le jeton vient du cookie httpOnly, exactement comme pour les routes HTTP.
+  // Socket.IO ne décode pas les cookies lui-même : l'en-tête brut du handshake est
+  // analysé ici. Côté navigateur, il suffit que la connexion soit ouverte avec
+  // withCredentials pour que le cookie parte.
+  const token = lireCookie(socket.handshake.headers?.cookie, COOKIE_NAME);
 
   if (!token) {
     return next(new Error("Accès refusé 🔒"));
