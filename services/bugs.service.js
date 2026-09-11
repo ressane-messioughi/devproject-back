@@ -7,12 +7,12 @@ const getProjectBug = async (project_id) => {
     return result
 }
 // Fonction pour créer un bug
-const createBug = async (title, description, status, file_url, project_id, created_by) => {
-    const result = await bugsModel.create(title, description, status, file_url, project_id, created_by);
+const createBug = async (title, description, status, fichier, code, project_id, created_by) => {
+    const result = await bugsModel.create(title, description, status, fichier, code, project_id, created_by);
     return result
 }
 // Fonction pour modifier le titre et la description d'un bug (uniquement l'auteur)
-const updateBug = async (id_bug, requester_id, title, description) => {
+const updateBug = async (id_bug, requester_id, title, description, code) => {
     const bug = await bugsModel.findById(id_bug);
     if (!bug) {
         throw new AppError("Bug introuvable", 404)
@@ -20,7 +20,7 @@ const updateBug = async (id_bug, requester_id, title, description) => {
     if (bug.created_by !== requester_id) {
         throw new AppError("Vous ne pouvez modifier que vos propres bugs", 403)
     }
-    const result = await bugsModel.updateDetails(id_bug, title, description)
+    const result = await bugsModel.updateDetails(id_bug, title, description, code)
     return result
 }
 // Fonction pour changer le statut d'un bug (n'importe quel membre de l'équipe)

@@ -14,25 +14,38 @@ const getBugByProject = async (req, res) => {
 const createBug = async (req, res) => {
   const { id_project: project_id } = req.params;
   const created_by = req.user.id;
-  const { title, description, status } = req.body;
+  const { title, description, status, repository_id, file_path, line_start, line_end } = req.body;
 
-  const uploadResult = await new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder: 'devproject/bugs' },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      },
-    );
-    stream.end(req.file.buffer);
-  });
-  const file_url = uploadResult.secure_url;
+  // La pièce jointe est facultative : un bug peut être signalé sans capture ni fichier.
+  // resource_type 'auto' laisse Cloudinary reconnaître lui-même le type — sans lui, un
+  // fichier .log ou .zip serait rejeté parce qu'il n'est pas une image.
+  let fichier = {};
+  if (req.file) {
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'devproject/bugs', resource_type: 'auto' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        },
+      );
+      stream.end(req.file.buffer);
+    });
+    fichier = {
+      file_url: uploadResult.secure_url,
+      file_name: req.file.originalname,
+    };
+  }
+
+  // Localisation du bug dans le code, elle aussi facultative
+  const code = { repository_id, file_path, line_start, line_end };
 
   const result = await bugsService.createBug(
     title,
     description,
     status,
-    file_url,
+    fichier,
+    code,
     project_id,
     created_by,
   );
@@ -46,7 +59,12 @@ const createBug = async (req, res) => {
     title,
     description,
     status,
-    file_url,
+    file_url: fichier.file_url ?? null,
+    file_name: fichier.file_name ?? null,
+    repository_id: repository_id ? Number(repository_id) : null,
+    file_path: file_path ?? null,
+    line_start: line_start ? Number(line_start) : null,
+    line_end: line_end ? Number(line_end) : null,
     project_id,
     created_by,
     created_at: new Date(),
@@ -63,11 +81,20 @@ const createBug = async (req, res) => {
 // Fonction pour modifier le titre et la description d'un bug (uniquement l'auteur)
 const updateBug = async (req, res) => {
   const { id_project: project_id, id_bug } = req.params;
-  const { title, description } = req.body;
+  const { title, description, repository_id, file_path, line_start, line_end } = req.body;
   const requester_id = req.user.id;
-  const result = await bugsService.updateBug(id_bug, requester_id, title, description);
+  const code = { repository_id, file_path, line_start, line_end };
+  const result = await bugsService.updateBug(id_bug, requester_id, title, description, code);
 
-  socketService.bugUpdated(project_id, { id_bug: Number(id_bug), title, description });
+  socketService.bugUpdated(project_id, {
+    id_bug: Number(id_bug),
+    title,
+    description,
+    repository_id: repository_id ? Number(repository_id) : null,
+    file_path: file_path ?? null,
+    line_start: line_start ? Number(line_start) : null,
+    line_end: line_end ? Number(line_end) : null,
+  });
 
   return res.json({ message: 'Bug mis à jour avec succès !', result });
 };
