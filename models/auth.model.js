@@ -19,8 +19,10 @@ const register = async (
   phone,
   role,
 ) => {
+  // consent_at reçoit NOW() : le RGPD demande de pouvoir prouver quand la personne a
+  // donné son accord, pas seulement qu'elle l'a donné.
   const sql =
-    'INSERT INTO users (firstname, lastname, username, email, password, avatar, city, phone, role) VALUES (?,?,?,?,?,?,?,?,?)';
+    'INSERT INTO users (firstname, lastname, username, email, password, avatar, city, phone, role, consent_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())';
   const [result] = await db.execute(sql, [
     firstname,
     lastname,

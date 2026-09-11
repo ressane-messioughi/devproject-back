@@ -35,6 +35,17 @@ body("username")
 body("city")
 .notEmpty().withMessage("Ville obligatoire"),
 
+// Le consentement est vérifié côté serveur et pas seulement dans le formulaire :
+// une inscription envoyée sans lui doit être refusée, sinon la case n'a aucune valeur
+// juridique. La date du consentement est enregistrée par le modèle.
+body("consent")
+.custom((value) => {
+  if (value !== true && value !== 'true') {
+    throw new Error("Vous devez accepter les mentions légales et la politique de confidentialité");
+  }
+  return true;
+}),
+
 // Le téléphone est facultatif. Quand il est fourni, on accepte aussi bien 0769461234
 // que 07.69.46.12.34 : la mise au format est faite ensuite par le service, pour que la
 // base ne contienne qu'une seule écriture.
