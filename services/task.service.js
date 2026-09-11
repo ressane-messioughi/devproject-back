@@ -13,8 +13,8 @@ return result
 }
 
 // Fonction pour mettre à jour une tâche
-const updateTask = async (id_task, title, description, status, assigned_to, project_id, sprint_id) => {
-const result = await taskModel.update(id_task, title, description, status, assigned_to, project_id, sprint_id);
+const updateTask = async (id_task, title, description, status, assigned_to, sprint_id) => {
+const result = await taskModel.update(id_task, title, description, status, assigned_to, sprint_id);
 return result
 }
 

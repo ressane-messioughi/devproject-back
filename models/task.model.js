@@ -1,8 +1,15 @@
 import db from '../config/db.js';
 
-// Fonction pour récupérer toutes les tâches d'un projet
+// Fonction pour récupérer toutes les tâches d'un projet, avec les infos de la personne
+// à qui elle est confiée (username, avatar)
 const findAll = async (project_id) => {
-  const sql = 'SELECT * FROM task WHERE project_id = ?';
+  const sql = `SELECT t.id_task, t.title, t.description, t.status, t.created_at, t.assigned_to,
+t.sprint_id, t.project_id,
+u.username, u.avatar
+FROM task t
+JOIN users u ON t.assigned_to = u.id
+WHERE t.project_id = ?
+ORDER BY t.created_at DESC`;
   const [result] = await db.execute(sql, [project_id]);
   return result;
 };
