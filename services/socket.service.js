@@ -89,6 +89,42 @@ const memberRemoved = async (user_id, project_id) => {
   io.to(`user_${user_id}`).emit('memberRemoved', { project_id });
 }
 
+// Diffuse l'ajout d'un schéma à toute la salle du projet
+const newSchema = async (id_project, schemaData) => {
+io.to(`project_${id_project}`).emit("newSchema", schemaData);
+}
+
+// Diffuse le renommage d'un schéma à toute la salle du projet
+const schemaUpdated = async (id_project, updatedSchema) => {
+  io.to(`project_${id_project}`).emit('schemaUpdated', updatedSchema);
+}
+
+// Diffuse la suppression d'un schéma (par le owner) à toute la salle du projet
+const schemaDeleted = async (id_project, id_schema) => {
+  io.to(`project_${id_project}`).emit('schemaDeleted', { id_schema });
+}
+
+// Diffuse le renommage du projet à toute la salle, pour que le sélecteur de projet
+// de chaque membre affiche le nouveau nom sans rechargement
+const projectUpdated = async (id_project, updatedProject) => {
+  io.to(`project_${id_project}`).emit('projectUpdated', updatedProject);
+}
+
+// Diffuse l'ajout d'une tâche à toute la salle du projet
+const newTask = async (id_project, taskData) => {
+io.to(`project_${id_project}`).emit("newTask", taskData);
+}
+
+// Diffuse la modification d'une tâche (titre, statut, membre assigné) à toute la salle du projet
+const taskUpdated = async (id_project, updatedTask) => {
+  io.to(`project_${id_project}`).emit('taskUpdated', updatedTask);
+}
+
+// Diffuse la suppression d'une tâche à toute la salle du projet
+const taskDeleted = async (id_project, id_task) => {
+  io.to(`project_${id_project}`).emit('taskDeleted', { id_task });
+}
+
 
 export default {
     deleteProject,
@@ -103,5 +139,12 @@ export default {
     bugStatusUpdated,
     bugUpdated,
     bugDeleted,
-    memberRemoved
+    memberRemoved,
+    newSchema,
+    schemaUpdated,
+    schemaDeleted,
+    projectUpdated,
+    newTask,
+    taskUpdated,
+    taskDeleted
 }
