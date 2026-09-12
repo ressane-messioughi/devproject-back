@@ -1,5 +1,6 @@
 import adminService from '../services/admin.service.js';
 import sessionModel from '../models/userSession.model.js';
+import auditModel from '../models/adminAudit.model.js';
 import AppError from '../middleware/AppError.js';
 
 // Fonction pour récupérer le tableau de bord de l'administration
@@ -73,6 +74,8 @@ const revoquerSession = async (req, res) => {
     throw new AppError('Session introuvable ou déjà fermée', 404);
   }
 
+  req.auditDetails = 'Fermeture immédiate, avant expiration du jeton';
+
   return res.status(200).json({ message: 'Session fermée' });
 };
 
@@ -84,13 +87,22 @@ const revoquerSessionsUtilisateur = async (req, res) => {
 
   const result = await sessionModel.revoquerTout(id_user, req.user.id, sauf);
 
+  req.auditDetails = `${result.affectedRows} session(s) fermée(s) sur ce compte`;
+
   return res.status(200).json({
     message: `${result.affectedRows} session(s) fermée(s)`,
     fermees: result.affectedRows,
   });
 };
 
+// Lecture du journal d'audit
+const getAudit = async (req, res) => {
+  const result = await auditModel.lister();
+  return res.status(200).json({ result });
+};
+
 export default {
+  getAudit,
   getDashboard,
   getUsers,
   getProjects,
