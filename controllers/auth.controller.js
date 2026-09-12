@@ -1,4 +1,5 @@
 import authService from '../services/auth.service.js';
+import accountService from '../services/account.service.js';
 import cloudinary from '../config/cloudinary.js';
 import jwt from 'jsonwebtoken';
 import { COOKIE_NAME, cookieOptions, clearCookieOptions } from '../middleware/cookie.middleware.js';
@@ -62,7 +63,58 @@ export const register = async (req, res) => {
     phone,
     role,
   });
-  return res.status(201).json({ message: 'Utilisateur créé avec succès', user: { id: user.insertId } });
+  // Le lien de confirmation part maintenant, mais son échec ne doit pas faire
+  // échouer l'inscription : le compte existe, et l'utilisateur pourra redemander
+  // un lien depuis l'écran de connexion.
+  await accountService.envoyerLienConfirmation({
+    id: user.insertId,
+    firstname,
+    email,
+  });
+
+  return res.status(201).json({
+    message: 'Utilisateur créé avec succès',
+    user: { id: user.insertId },
+  });
+};
+
+// Fonction Confirmation de l'adresse email
+export const confirmEmail = async (req, res) => {
+  const { jeton } = req.body;
+  const { prenom } = await accountService.confirmerAdresse(jeton);
+
+  return res.status(200).json({ message: 'Adresse confirmée', prenom });
+};
+
+// Fonction Renvoi du lien de confirmation
+// Répond toujours 200, que l'adresse existe ou non : une réponse différente
+// permettrait de savoir qui est inscrit sur le site.
+export const resendConfirmation = async (req, res) => {
+  const { email } = req.body;
+  await accountService.renvoyerLienConfirmation(email);
+
+  return res.status(200).json({
+    message: "Si un compte existe pour cette adresse et n'est pas encore confirmé, un lien vient d'être envoyé",
+  });
+};
+
+// Fonction Demande de réinitialisation du mot de passe
+// Même principe : la réponse ne dit jamais si l'adresse est connue.
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  await accountService.demanderReinitialisation(email);
+
+  return res.status(200).json({
+    message: "Si un compte existe pour cette adresse, un lien de réinitialisation vient d'être envoyé",
+  });
+};
+
+// Fonction Choix d'un nouveau mot de passe
+export const resetPassword = async (req, res) => {
+  const { jeton, password } = req.body;
+  await accountService.reinitialiserMotDePasse(jeton, password);
+
+  return res.status(200).json({ message: 'Mot de passe modifié' });
 };
 
 // Fonction Mise à jour de l'utilisateur

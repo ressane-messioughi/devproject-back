@@ -67,6 +67,13 @@ export function htmlVersTexte(html) {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/[ \t]+/g, ' ')
+    // Les tables du gabarit laissent des lignes qui ne contiennent qu'une
+    // espace. Elles ne sont pas vides au sens de la règle suivante, qui les
+    // laisserait donc toutes passer : il faut les rogner avant de replier les
+    // séparations, sinon le message en texte seul est illisible.
+    .split('\n')
+    .map((ligne) => ligne.trim())
+    .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
