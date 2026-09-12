@@ -36,7 +36,24 @@ const getJournals = async (req, res) => {
 // Les sessions récemment révoquées ou expirées restent dans la liste : c'est ce
 // qui permet de constater qu'une révocation a bien eu lieu.
 const getSessions = async (req, res) => {
-  const result = await sessionModel.lister();
+  const sessions = await sessionModel.lister();
+
+  // C'est le serveur qui désigne la session de celui qui regarde, plutôt que de
+  // renvoyer son identifiant au navigateur pour l'y faire comparer : rien
+  // n'oblige à sortir cet identifiant du cookie httpOnly, et moins il circule,
+  // mieux c'est.
+  // Le caractère actif est calculé ici et non dans le navigateur : c'est
+  // l'horloge du serveur qui fait foi, et c'est elle qui décide déjà si la
+  // session laisse passer une requête. Une machine dont l'heure est décalée
+  // afficherait sinon des sessions actives comme expirées, ou l'inverse.
+  const maintenant = Date.now();
+
+  const result = sessions.map((session) => ({
+    ...session,
+    est_la_votre: session.id_session === req.user.sid,
+    active: !session.revoked_at && new Date(session.expires_at).getTime() > maintenant,
+  }));
+
   return res.status(200).json({ result });
 };
 
