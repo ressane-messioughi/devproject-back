@@ -51,5 +51,5 @@ body("consent")
 // base ne contienne qu'une seule écriture.
 body("phone")
 .optional({ checkFalsy: true })
-.matches(/^0[1-9]([\s.-]?\d{2}){4}$/).withMessage("Numéro invalide (ex : 07.69.46.12.34)"),
+.matches(/^0[1-9]([\s.-]?\d{2}){4}$/).withMessage("Numéro invalide : 10 chiffres, avec ou sans séparateurs"),
 ];
