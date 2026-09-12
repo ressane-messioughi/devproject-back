@@ -23,3 +23,20 @@ export const validateAnswerBody = [
     .optional({ checkFalsy: true })
     .isLength({ max: 5000 }).withMessage('5000 caractères maximum'),
 ];
+
+// Corps attendu pour une campagne d'emails envoyee depuis le panel.
+export const validateCampagneBody = [
+body("sujet")
+.trim()
+.notEmpty().withMessage("Objet obligatoire")
+.isLength({ max: 200 }).withMessage("Objet trop long (200 caracteres maximum)"),
+
+body("contenu")
+.notEmpty().withMessage("Message obligatoire")
+// La colonne est un TEXT : au-dela, l'ecriture echouerait avec une erreur SQL
+// brute plutot qu'un message comprehensible.
+.isLength({ max: 60000 }).withMessage("Message trop long"),
+
+body("destinataires")
+.notEmpty().withMessage("Destinataires obligatoires"),
+];

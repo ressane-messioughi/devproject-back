@@ -24,6 +24,7 @@ const ACTIONS = {
   'PUT /tickets/:id_ticket': ['TICKET_REPONDU', 'ticket'],
   'DELETE /tickets/:id_ticket': ['TICKET_SUPPRIME', 'ticket'],
   'POST /emails': ['CAMPAGNE_ENVOYEE', 'campagne'],
+  'POST /emails/image': ['IMAGE_CAMPAGNE_ENVOYEE', 'image'],
 };
 
 export const auditAdmin = (req, res, next) => {

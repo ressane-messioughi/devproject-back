@@ -6,7 +6,8 @@ import { authenticate } from '../middleware/auth.middleware.js';
 import { isAdmin } from '../middleware/isAdmin.middleware.js';
 import { auditAdmin } from '../middleware/auditAdmin.middleware.js';
 import validate from '../middleware/validate.js';
-import { validateAnswerBody } from '../validators/ticket.validator.js';
+import upload from '../middleware/upload.middleware.js';
+import { validateAnswerBody, validateCampagneBody } from '../validators/ticket.validator.js';
 
 const router = express.Router();
 
@@ -35,6 +36,12 @@ router.get('/journals', adminController.getJournals);
 router.get('/sessions', adminController.getSessions);
 router.delete('/sessions/:id_session', adminController.revoquerSession);
 router.delete('/users/:id_user/sessions', adminController.revoquerSessionsUtilisateur);
+
+// Campagnes d'emails. L'envoi est trace par le journal d'audit, comme toute
+// action du panel qui modifie quelque chose.
+router.get('/emails', adminController.getEmails);
+router.post('/emails', validateCampagneBody, validate, adminController.envoyerCampagne);
+router.post('/emails/image', upload.single('file'), adminController.envoyerImageCampagne);
 
 // Journal d'audit, en lecture seule : aucune route ne permet d'en effacer une
 // ligne, ce qui serait contradictoire avec sa raison d'etre.

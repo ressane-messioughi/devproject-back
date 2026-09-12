@@ -1,6 +1,11 @@
 import adminService from '../services/admin.service.js';
 import sessionModel from '../models/userSession.model.js';
 import auditModel from '../models/adminAudit.model.js';
+import cloudinary from '../config/cloudinary.js';
+import campaignModel, { PUBLICS_VALIDES } from '../models/emailCampaign.model.js';
+import { sanitizeHtml } from '../utils/sanitizeHtml.js';
+import { messageCampagne } from '../utils/emailMessages.js';
+import { envoyerParLots, smtpEstConfigure } from '../services/email.service.js';
 import AppError from '../middleware/AppError.js';
 
 // Fonction pour récupérer le tableau de bord de l'administration
@@ -95,6 +100,114 @@ const revoquerSessionsUtilisateur = async (req, res) => {
   });
 };
 
+// Envoi d'une image destinée au corps d'une campagne.
+//
+// Le Journal a sa propre route, mais elle est rattachée à un projet : elle ne
+// convient pas ici. Le traitement est le même, dossier et bornes compris, pour
+// que les deux éditeurs produisent des adresses de la même forme — c'est ce que
+// le nettoyage anti-XSS attend.
+const envoyerImageCampagne = async (req, res) => {
+  if (!req.file) {
+    throw new AppError('Aucune image reçue', 400);
+  }
+
+  const uploadResult = await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'devproject/campagne' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      },
+    );
+    stream.end(req.file.buffer);
+  });
+
+  const url = cloudinary.url(uploadResult.public_id, {
+    secure: true,
+    analytics: false,
+    transformation: [{ width: 900, crop: 'limit', quality: 'auto' }],
+    format: uploadResult.format,
+  });
+
+  return res.status(201).json({ message: 'Image envoyée', url });
+};
+
+// Campagnes passées, et état de l'envoi.
+//
+// L'état du SMTP est renvoyé avec : sans lui, le panel proposerait d'écrire un
+// message qui ne partirait nulle part, et rien ne l'expliquerait à l'écran.
+const getEmails = async (req, res) => {
+  const [campagnes, compteurs] = await Promise.all([
+    campaignModel.lister(),
+    Promise.all(
+      PUBLICS_VALIDES.map(async (cle) => [cle, await campaignModel.compterDestinataires(cle)]),
+    ),
+  ]);
+
+  return res.status(200).json({
+    result: campagnes,
+    publics: Object.fromEntries(compteurs),
+    smtp: smtpEstConfigure(),
+  });
+};
+
+// Envoi d'une campagne.
+const envoyerCampagne = async (req, res) => {
+  const { sujet, contenu, destinataires } = req.body;
+
+  if (!PUBLICS_VALIDES.includes(destinataires)) {
+    throw new AppError('Public de destinataires inconnu', 400);
+  }
+
+  // Le contenu vient de l'éditeur enrichi et repasse par le nettoyage, même si
+  // le navigateur l'a déjà fait : un appel direct à l'API contourne entièrement
+  // le formulaire, et le serveur est le seul endroit où la règle ne peut pas
+  // être évitée.
+  const contenuPropre = sanitizeHtml(contenu);
+
+  // Un message vide n'est pas une chaîne vide.
+  //
+  // L'éditeur rend toujours au moins un paragraphe : « <p></p> » passait donc
+  // le test, et une campagne sans le moindre mot partait vers tous les inscrits.
+  // Ce qui compte est le texte, ou à défaut une image, pas le balisage.
+  const texte = contenuPropre
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+  const contientUneImage = /<img\b/i.test(contenuPropre);
+
+  if (!texte && !contientUneImage) {
+    throw new AppError('Le message est vide', 400);
+  }
+
+  const adresses = await campaignModel.listerDestinataires(destinataires);
+
+  if (adresses.length === 0) {
+    throw new AppError('Aucun destinataire pour ce public', 400);
+  }
+
+  const { sujet: objet, html } = messageCampagne({ sujet, contenuHtml: contenuPropre });
+  const { envoyes, echecs } = await envoyerParLots({ destinataires: adresses, sujet: objet, html });
+
+  await campaignModel.create({
+    admin_id: req.user.id,
+    sujet,
+    contenu: contenuPropre,
+    destinataires,
+    nb_envoyes: envoyes,
+    nb_echecs: echecs.length,
+  });
+
+  // Repris par le journal d'audit, qui écrit la trace en fin de réponse.
+  req.auditDetails = `« ${sujet} » vers ${destinataires} : ${envoyes} envoyé(s), ${echecs.length} échec(s)`;
+
+  return res.status(201).json({
+    message: `${envoyes} message(s) envoyé(s)`,
+    envoyes,
+    echecs: echecs.length,
+  });
+};
+
 // Lecture du journal d'audit
 const getAudit = async (req, res) => {
   const result = await auditModel.lister();
@@ -103,6 +216,9 @@ const getAudit = async (req, res) => {
 
 export default {
   getAudit,
+  getEmails,
+  envoyerCampagne,
+  envoyerImageCampagne,
   getDashboard,
   getUsers,
   getProjects,

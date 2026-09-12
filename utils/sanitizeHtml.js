@@ -44,15 +44,32 @@ const CLASSES_ALIGNEMENT = {
   right: 'aligne-droite',
 };
 
+// Les classes que ce nettoyage a lui-même le droit de produire.
+const CLASSES_CONNUES = Object.values(CLASSES_ALIGNEMENT);
+
 const classeAlignement = (balise, nom) => {
   if (!BLOCS_ALIGNABLES.includes(nom)) return '';
 
   const style = balise.match(/\sstyle\s*=\s*["']([^"']*)["']/i)?.[1] ?? '';
   const trouve = /text-align:\s*(left|center|right)/i.exec(style);
-  const classe = trouve ? CLASSES_ALIGNEMENT[trouve[1].toLowerCase()] : undefined;
 
-  // À gauche est déjà la valeur par défaut : il n'y a rien à écrire.
-  return classe ? ` class="${classe}"` : '';
+  if (trouve) {
+    const classe = CLASSES_ALIGNEMENT[trouve[1].toLowerCase()];
+    // À gauche est déjà la valeur par défaut : il n'y a rien à écrire.
+    return classe ? ` class="${classe}"` : '';
+  }
+
+  // Contenu déjà nettoyé une première fois par le navigateur : il ne porte plus
+  // de style, mais la classe que ce nettoyage produit lui-même.
+  //
+  // Sans ce second cas, l'alignement disparaissait à l'enregistrement : le
+  // navigateur traduisait le style en classe, puis le serveur jetait la classe
+  // faute de style à relire. Le va-et-vient annulait le travail.
+  //
+  // La valeur reçue n'est pas recopiée pour autant : elle doit figurer à
+  // l'identique dans la liste fermée, sinon elle est ignorée.
+  const classeRecue = balise.match(/\sclass\s*=\s*["']([^"']*)["']/i)?.[1] ?? '';
+  return CLASSES_CONNUES.includes(classeRecue.trim()) ? ` class="${classeRecue.trim()}"` : '';
 };
 
 export function sanitizeHtml(html) {
