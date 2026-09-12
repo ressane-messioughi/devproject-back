@@ -109,7 +109,12 @@ app.use('/api/admin', adminRoute);
 // Middleware d'erreur global — doit rester le tout dernier app.use().
 // Sans lui, une AppError levée dans un service retombe sur le gestionnaire
 // par défaut d'Express, qui ignore statusCode et renvoie du HTML au lieu de JSON.
-app.use((err, req, res, next) => {
+//
+// Le quatrième paramètre est obligatoire même inutilisé : Express reconnaît un
+// middleware d'erreur au nombre d'arguments de la fonction, pas à leur nom. Le
+// retirer ferait de celui-ci un middleware ordinaire, plus jamais appelé sur une
+// erreur. Le préfixe _ dit à ESLint que l'oubli est volontaire.
+app.use((err, req, res, _next) => {
   console.error(err);
   const statusCode = err.statusCode || 500;
   return res.status(statusCode).json({ message: err.message || 'Erreur serveur' });
