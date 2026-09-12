@@ -8,8 +8,7 @@ import db from '../config/db.js';
 
 // Fonction pour enregistrer un nouveau jeton
 const create = async (users_id, type, token_hash, expires_at) => {
-  const sql =
-    'INSERT INTO user_token (users_id, type, token_hash, expires_at) VALUES (?,?,?,?)';
+  const sql = 'INSERT INTO user_token (users_id, type, token_hash, expires_at) VALUES (?,?,?,?)';
   const [result] = await db.execute(sql, [users_id, type, token_hash, expires_at]);
   return result;
 };
