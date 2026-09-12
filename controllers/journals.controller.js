@@ -1,36 +1,36 @@
-import journalService from "../services/journal.service.js";
-import socketService from "../services/socket.service.js";
-import teamModel from "../models/team.model.js";
-import cloudinary from "../config/cloudinary.js";
-import { sanitizeHtml } from "../utils/sanitizeHtml.js";
+import journalService from '../services/journal.service.js';
+import socketService from '../services/socket.service.js';
+import teamModel from '../models/team.model.js';
+import cloudinary from '../config/cloudinary.js';
+import { sanitizeHtml } from '../utils/sanitizeHtml.js';
 
 // Fonction pour récupérer les messages d'un projet
 const getProjectMessage = async (req, res) => {
-    const {id_project} = req.params
-    const result = await journalService.getProjectMessage(id_project)
-    return res.status(200).json(result)
+  const { id_project } = req.params;
+  const result = await journalService.getProjectMessage(id_project);
+  return res.status(200).json(result);
 };
 
 // Fonction pour créer un message dans le journal d'un projet
 const createMessage = async (req, res) => {
-    const {title} = req.body;
-    const {id_project} = req.params;
-    const users_id = req.user.id;
-    const user = req.user
+  const { title } = req.body;
+  const { id_project } = req.params;
+  const users_id = req.user.id;
+  const user = req.user;
 
-    // Le message contient de la mise en forme saisie par l'utilisateur. Le navigateur la
-    // nettoie deja avant l'envoi, mais un appel direct a l'API contournerait le
-    // formulaire : le serveur est le seul endroit ou la regle ne peut pas etre evitee.
-    const message = sanitizeHtml(req.body.message);
+  // Le message contient de la mise en forme saisie par l'utilisateur. Le navigateur la
+  // nettoie deja avant l'envoi, mais un appel direct a l'API contournerait le
+  // formulaire : le serveur est le seul endroit ou la regle ne peut pas etre evitee.
+  const message = sanitizeHtml(req.body.message);
 
-    const result = await journalService.createMessage(title, message, id_project, users_id);
+  const result = await journalService.createMessage(title, message, id_project, users_id);
 
-    // Récupération du team_role de l'auteur pour l'affichage du badge en temps réel
-    const team = await teamModel.findByProjectId(id_project);
-    const teamUser = team ? await teamModel.getUserRole(users_id, team.id_team) : null;
+  // Récupération du team_role de l'auteur pour l'affichage du badge en temps réel
+  const team = await teamModel.findByProjectId(id_project);
+  const teamUser = team ? await teamModel.getUserRole(users_id, team.id_team) : null;
 
-    // Création d'un objet représentant le nouveau message pour l'émission via Socket.IO
-    const newMessage = {
+  // Création d'un objet représentant le nouveau message pour l'émission via Socket.IO
+  const newMessage = {
     id_journal: result.insertId,
     title,
     message,
@@ -41,27 +41,32 @@ const createMessage = async (req, res) => {
     avatar: req.user.avatar,
     team_role: teamUser?.team_role || null,
   };
-  socketService.newJournalMessage(id_project, newMessage)
-  socketService.journalNotifyTeam(id_project, user, title)
-// Mise à jour du composant Journal en temps réel pour tous les utilisateurs connectés au projet
-    return res.status(201).json({result, message : 'Message créé avec succès !'}) 
+  socketService.newJournalMessage(id_project, newMessage);
+  socketService.journalNotifyTeam(id_project, user, title);
+  // Mise à jour du composant Journal en temps réel pour tous les utilisateurs connectés au projet
+  return res.status(201).json({ result, message: 'Message créé avec succès !' });
 };
 
 // Fonction pour modifier un message du journal d'un projet
 const updateMessage = async (req, res) => {
-    const { id_journal } = req.params;
-    const { title, message } = req.body;
-    const users_id = req.user.id;
-    const result = await journalService.updateMessage(id_journal, users_id, title, sanitizeHtml(message));
-    return res.status(200).json({ message: 'Message modifié avec succès !', result });
+  const { id_journal } = req.params;
+  const { title, message } = req.body;
+  const users_id = req.user.id;
+  const result = await journalService.updateMessage(
+    id_journal,
+    users_id,
+    title,
+    sanitizeHtml(message),
+  );
+  return res.status(200).json({ message: 'Message modifié avec succès !', result });
 };
 
 // Fonction pour supprimer un message du journal d'un projet
-const deleteMessage = async (req,res) => {
-    const {id_project, id_journal} = req.params;
-    const users_id = req.user.id;
-    const result = await journalService.deleteMessage(id_journal, id_project, users_id);
-    return res.status(200).json({message : "Message supprimé avec succès !", result});
+const deleteMessage = async (req, res) => {
+  const { id_project, id_journal } = req.params;
+  const users_id = req.user.id;
+  const result = await journalService.deleteMessage(id_journal, id_project, users_id);
+  return res.status(200).json({ message: 'Message supprimé avec succès !', result });
 };
 // Fonction pour envoyer une image à insérer dans le corps d'un message.
 // Rien n'est enregistré en base : seule l'adresse revient au navigateur, qui la place
@@ -78,13 +83,34 @@ const uploadImage = async (req, res) => {
     stream.end(req.file.buffer);
   });
 
-  return res.status(201).json({ message: 'Image envoyée', url: uploadResult.secure_url });
+  // L'adresse renvoyée n'est pas celle de l'image d'origine mais une version
+  // bornée, fabriquée par Cloudinary à la volée.
+  //
+  // Sans cela, une capture d'écran de 3000 pixels de large partait telle quelle
+  // dans le corps du message : plusieurs mégaoctets téléchargés par chaque
+  // lecteur, et une image que la mise en page devait rattraper après coup.
+  //
+  // c_limit ne fait que réduire, jamais agrandir : une petite image reste à sa
+  // taille. q_auto laisse Cloudinary choisir la compression. f_auto n'est
+  // volontairement pas utilisé : il sert un format choisi d'après l'en-tête
+  // Accept, ce qu'une messagerie ne fournit pas toujours, et la même adresse
+  // doit rester lisible dans un email comme dans le navigateur.
+  const url = cloudinary.url(uploadResult.public_id, {
+    secure: true,
+    // Sans analytics: false, Cloudinary accroche un paramètre de suivi à chaque
+    // adresse. Il finirait recopié dans le message et dans la base.
+    analytics: false,
+    transformation: [{ width: 900, crop: 'limit', quality: 'auto' }],
+    format: uploadResult.format,
+  });
+
+  return res.status(201).json({ message: 'Image envoyée', url });
 };
 
 export default {
-    getProjectMessage,
-    createMessage,
-    uploadImage,
-    updateMessage,
-    deleteMessage
-}
+  getProjectMessage,
+  createMessage,
+  uploadImage,
+  updateMessage,
+  deleteMessage,
+};

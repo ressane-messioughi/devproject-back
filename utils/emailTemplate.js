@@ -163,6 +163,38 @@ export function gabaritEmail({ titre, corps, preEntete = '', piedNote = '' }) {
 </html>`;
 }
 
+/**
+ * Adapte à la messagerie un contenu écrit dans l'éditeur enrichi.
+ *
+ * Le contenu arrive déjà nettoyé par sanitizeHtml : il ne contient que des
+ * balises de mise en forme et, sur les blocs, la classe d'alignement. Or une
+ * classe ne sert à rien dans un email, où la feuille de styles est le plus
+ * souvent ignorée. Les deux classes possibles sont donc retraduites en style
+ * écrit sur la balise.
+ *
+ * Les images reçoivent le même traitement : sans display:block et sans marge
+ * automatique, une image reste collée à gauche sur la ligne de texte, et
+ * plusieurs clients l'affichent à sa taille réelle si rien ne la borne. La
+ * largeur maximale de 520 pixels correspond à la colonne du gabarit, une fois
+ * ses marges retirées.
+ */
+export function contenuPourEmail(html) {
+  return String(html ?? '')
+    .replace(/class="aligne-centre"/g, 'style="text-align:center;"')
+    .replace(/class="aligne-droite"/g, 'style="text-align:right;"')
+    .replace(/<img\b([^>]*?)\/?>/gi, (balise, attributs) => {
+      const source = /\ssrc\s*=\s*["']([^"']*)["']/i.exec(attributs)?.[1] ?? '';
+      const alt = /\salt\s*=\s*["']([^"']*)["']/i.exec(attributs)?.[1] ?? '';
+      if (!source) return '';
+
+      return (
+        `<img src="${source}" alt="${alt}" width="520" ` +
+        `style="display:block;margin:16px auto;max-width:100%;width:100%;` +
+        `max-width:520px;height:auto;border-radius:10px;border:0;">`
+      );
+    });
+}
+
 // Paragraphe du corps, à la bonne couleur et à la bonne police.
 export const paragraphe = (html) => `
   <p style="margin:0 0 16px;font-family:${POLICE};font-size:15px;line-height:1.7;

@@ -5,6 +5,7 @@ import {
   encart,
   lienDeSecours,
   echapper,
+  contenuPourEmail,
   COULEURS,
   POLICE,
   APP_URL,
@@ -24,10 +25,10 @@ export const DUREE_REINITIALISATION_MINUTES = 30;
 /** Confirmation de l'adresse, envoyée juste après l'inscription. */
 export function messageConfirmation({ prenom, url }) {
   return {
-    sujet: "Confirmez votre adresse - DevProject",
+    sujet: 'Confirmez votre adresse - DevProject',
     html: gabaritEmail({
       titre: "Il ne reste qu'une étape",
-      preEntete: "Confirmez votre adresse pour activer votre compte DevProject.",
+      preEntete: 'Confirmez votre adresse pour activer votre compte DevProject.',
       corps: `
         ${paragraphe(`Bonjour ${echapper(prenom)},`)}
         ${paragraphe(
@@ -41,7 +42,7 @@ export function messageConfirmation({ prenom, url }) {
         ${paragraphe(
           `<span style="font-size:13px;">Si vous n'êtes pas à l'origine de cette inscription, ignorez ce message : sans confirmation, le compte reste inactif.</span>`,
         )}`,
-      piedNote: "Message automatique, envoyé suite à une inscription.",
+      piedNote: 'Message automatique, envoyé suite à une inscription.',
     }),
   };
 }
@@ -49,14 +50,14 @@ export function messageConfirmation({ prenom, url }) {
 /** Réinitialisation du mot de passe. */
 export function messageReinitialisation({ prenom, url }) {
   return {
-    sujet: "Réinitialisation de votre mot de passe - DevProject",
+    sujet: 'Réinitialisation de votre mot de passe - DevProject',
     html: gabaritEmail({
-      titre: "Réinitialiser votre mot de passe",
-      preEntete: "Un lien pour choisir un nouveau mot de passe DevProject.",
+      titre: 'Réinitialiser votre mot de passe',
+      preEntete: 'Un lien pour choisir un nouveau mot de passe DevProject.',
       corps: `
         ${paragraphe(`Bonjour ${echapper(prenom)},`)}
         ${paragraphe(
-          "Une demande de réinitialisation a été faite pour votre compte. Choisissez un nouveau mot de passe avec le bouton ci-dessous.",
+          'Une demande de réinitialisation a été faite pour votre compte. Choisissez un nouveau mot de passe avec le bouton ci-dessous.',
         )}
         ${bouton('Choisir un nouveau mot de passe', url)}
         ${lienDeSecours(url)}
@@ -68,18 +69,15 @@ export function messageReinitialisation({ prenom, url }) {
           "Vous n'avez rien demandé ? Ne cliquez pas, et surtout ne transmettez ce lien à personne. Votre mot de passe actuel reste valable tant que ce lien n'a pas été utilisé.",
           COULEURS.danger,
         )}`,
-      piedNote: "Message automatique, envoyé suite à une demande de réinitialisation.",
+      piedNote: 'Message automatique, envoyé suite à une demande de réinitialisation.',
     }),
   };
 }
 
 // Les trois pistes proposées dans le message de bienvenue.
 const DEMARRAGE = [
-  [
-    'Créez votre projet',
-    "Vous en devenez le propriétaire et recevez un code d'équipe à partager.",
-  ],
-  ['Ou rejoignez-en un', "Avec le code que votre équipe vous a transmis."],
+  ['Créez votre projet', "Vous en devenez le propriétaire et recevez un code d'équipe à partager."],
+  ['Ou rejoignez-en un', 'Avec le code que votre équipe vous a transmis.'],
   [
     'Publiez votre première note',
     'Le journal de bord garde la trace de ce que chacun a fait, et à quel moment.',
@@ -101,10 +99,10 @@ export function messageBienvenue({ prenom }) {
   ).join('');
 
   return {
-    sujet: "Bienvenue sur DevProject",
+    sujet: 'Bienvenue sur DevProject',
     html: gabaritEmail({
-      titre: "Bienvenue sur DevProject",
-      preEntete: "Votre compte est actif. Voici par où commencer.",
+      titre: 'Bienvenue sur DevProject',
+      preEntete: 'Votre compte est actif. Voici par où commencer.',
       corps: `
         ${paragraphe(`Bonjour ${echapper(prenom)},`)}
         ${paragraphe(
@@ -133,9 +131,9 @@ export function messageCampagne({ sujet, contenuHtml }) {
       titre: sujet,
       preEntete: sujet,
       corps: `
-        <div class="contenu-email" style="font-family:${POLICE};font-size:15px;
+        <div style="font-family:${POLICE};font-size:15px;
                     line-height:1.7;color:${COULEURS.texteAttenue};">
-          ${contenuHtml}
+          ${contenuPourEmail(contenuHtml)}
         </div>`,
       piedNote: "Vous recevez ce message en tant qu'inscrit sur DevProject.",
     }),

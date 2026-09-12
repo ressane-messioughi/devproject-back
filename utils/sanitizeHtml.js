@@ -6,15 +6,54 @@
 //
 // Liste blanche, comme côté navigateur : tout est refusé sauf ce qui est nommé ici.
 const BALISES_AUTORISEES = [
-  'b', 'strong', 'i', 'em', 'u', 's',
-  'p', 'br', 'div', 'span',
-  'ul', 'ol', 'li',
-  'h2', 'h3',
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  's',
+  'p',
+  'br',
+  'div',
+  'span',
+  'ul',
+  'ol',
+  'li',
+  'h2',
+  'h3',
   'blockquote',
   'img',
 ];
 
 const SOURCES_IMAGES = ['https://res.cloudinary.com/'];
+
+// Alignement du texte, traité exactement comme côté navigateur.
+//
+// Le navigateur produit style="text-align: center" quand on clique sur le bouton
+// Centrer. Ce nettoyage réécrit chaque balise sans aucun attribut : l'alignement
+// disparaissait donc à l'enregistrement, et les trois boutons de la barre
+// d'outils ne servaient à rien.
+//
+// L'attribut style n'est pas autorisé pour autant : la valeur est relue, puis
+// réécrite sous forme d'une classe prise dans une liste fermée. Ce qui est écrit
+// dans le document ne vient jamais de ce qui a été reçu.
+const BLOCS_ALIGNABLES = ['p', 'div', 'h2', 'h3', 'li', 'blockquote'];
+
+const CLASSES_ALIGNEMENT = {
+  center: 'aligne-centre',
+  right: 'aligne-droite',
+};
+
+const classeAlignement = (balise, nom) => {
+  if (!BLOCS_ALIGNABLES.includes(nom)) return '';
+
+  const style = balise.match(/\sstyle\s*=\s*["']([^"']*)["']/i)?.[1] ?? '';
+  const trouve = /text-align:\s*(left|center|right)/i.exec(style);
+  const classe = trouve ? CLASSES_ALIGNEMENT[trouve[1].toLowerCase()] : undefined;
+
+  // À gauche est déjà la valeur par défaut : il n'y a rien à écrire.
+  return classe ? ` class="${classe}"` : '';
+};
 
 export function sanitizeHtml(html) {
   if (!html) return '';
@@ -41,8 +80,10 @@ export function sanitizeHtml(html) {
     }
 
     // Pour toutes les autres, la balise est réécrite sans aucun attribut :
-    // aucun gestionnaire d'évènement ne peut donc survivre.
-    return `<${nom.toLowerCase()}>`;
+    // aucun gestionnaire d'évènement ne peut donc survivre. Seul l'alignement
+    // est reposé, et uniquement depuis la liste fermée ci-dessus.
+    const minuscule = nom.toLowerCase();
+    return `<${minuscule}${classeAlignement(balise, minuscule)}>`;
   });
 
   return propre;
