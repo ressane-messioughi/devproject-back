@@ -227,7 +227,7 @@ const documentDeleted = async (id_project, id_document) => {
   io.to(`project_${id_project}`).emit('documentDeleted', { id_document });
 }
 
-// Diffuse l etat du point quotidien a toute la salle du projet.
+// Diffuse l etat du daily a toute la salle du projet.
 // La valeur nulle signifie qu il n y en a plus : clos ou annule.
 const dailyUpdated = async (id_project, daily) => {
 io.to(`project_${id_project}`).emit("dailyUpdated", daily);

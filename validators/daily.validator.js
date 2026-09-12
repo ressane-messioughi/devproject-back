@@ -4,7 +4,7 @@ const MODES = ['VISIO', 'PRESENTIEL'];
 
 export const validateDailyBody = [
   body('scheduled_at')
-    .notEmpty().withMessage("L'heure du point est obligatoire"),
+    .notEmpty().withMessage("L'heure du daily est obligatoire"),
   body('duration_minutes')
     .optional({ checkFalsy: true })
     .isInt({ min: 5, max: 120 }).withMessage('Entre 5 et 120 minutes'),

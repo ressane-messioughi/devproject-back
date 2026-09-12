@@ -1,11 +1,11 @@
 import teamModel from '../models/team.model.js';
 import AppError from './AppError.js';
 
-// Middleware qui autorise la gestion du point quotidien.
+// Middleware qui autorise la gestion du daily.
 //
 // Deux personnes peuvent le piloter : le propriétaire du projet, et celle qui porte le
 // rôle Scrum dans l'équipe. C'est exactement la répartition d'une équipe agile — animer
-// le point quotidien fait partie du rôle Scrum, pas de la propriété du projet.
+// le daily fait partie du rôle Scrum, pas de la propriété du projet.
 //
 // À la différence de isProjectOwner, ce contrôle regarde donc aussi team_role.
 export const canManageDaily = async (req, res, next) => {
@@ -24,7 +24,7 @@ export const canManageDaily = async (req, res, next) => {
 
     if (userRole.role !== 'OWNER' && userRole.team_role !== 'Scrum') {
       throw new AppError(
-        'Seuls le propriétaire du projet et le Scrum peuvent gérer le point quotidien',
+        'Seuls le propriétaire du projet et le Scrum peuvent gérer le daily',
         403,
       );
     }

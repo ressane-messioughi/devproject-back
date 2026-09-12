@@ -1,6 +1,6 @@
 import db from '../config/db.js';
 
-// Fonction pour récupérer le point quotidien courant d'un projet.
+// Fonction pour récupérer le daily courant d'un projet.
 //
 // Un seul est pertinent à la fois : celui qui est en cours, sinon le prochain planifié.
 // L'ordre de tri place donc "EN COURS" avant "PLANIFIE", puis le plus proche dans le temps.
@@ -17,14 +17,14 @@ LIMIT 1`;
   return result[0] ?? null;
 };
 
-// Fonction pour récupérer un point quotidien par son ID
+// Fonction pour récupérer un daily par son ID
 const findById = async (id_daily) => {
   const sql = 'SELECT * FROM daily WHERE id_daily = ?';
   const [result] = await db.execute(sql, [id_daily]);
   return result[0];
 };
 
-// Fonction pour planifier un point quotidien
+// Fonction pour planifier un daily
 const create = async (donnees, project_id, created_by) => {
   const sql =
     'INSERT INTO daily (scheduled_at, duration_minutes, mode, link, location, note, project_id, created_by) VALUES (?,?,?,?,?,?,?,?)';
@@ -41,7 +41,7 @@ const create = async (donnees, project_id, created_by) => {
   return result;
 };
 
-// Fonction pour modifier un point quotidien planifié
+// Fonction pour modifier un daily planifié
 const update = async (id_daily, donnees) => {
   const sql =
     'UPDATE daily SET scheduled_at = ?, duration_minutes = ?, mode = ?, link = ?, location = ?, note = ? WHERE id_daily = ?';
@@ -57,7 +57,7 @@ const update = async (id_daily, donnees) => {
   return result;
 };
 
-// Fonction pour lancer le point quotidien.
+// Fonction pour lancer le daily.
 // started_at est posé par le serveur et non envoyé par le navigateur : le minuteur
 // affiché chez chaque membre doit partir du même instant pour tout le monde.
 const start = async (id_daily) => {
@@ -66,14 +66,14 @@ const start = async (id_daily) => {
   return result;
 };
 
-// Fonction pour clore le point quotidien
+// Fonction pour clore le daily
 const end = async (id_daily) => {
   const sql = "UPDATE daily SET status = 'TERMINE', ended_at = NOW() WHERE id_daily = ?";
   const [result] = await db.execute(sql, [id_daily]);
   return result;
 };
 
-// Fonction pour annuler un point quotidien
+// Fonction pour annuler un daily
 const remove = async (id_daily) => {
   const sql = 'DELETE FROM daily WHERE id_daily = ?';
   const [result] = await db.execute(sql, [id_daily]);
