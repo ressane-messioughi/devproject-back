@@ -8,12 +8,15 @@ export const isProjectOwner = async (req, res, next) => {
     const { id_project } = req.params;
     const user_id = req.user.id;
 
-    const team = await teamModel.findByProjectId(id_project);
+    // isProjectMember passe avant sur tous les routeurs de projet et a déjà
+    // chargé l'équipe et l'appartenance. Les relire évite deux requêtes SQL
+    // identiques sur chaque action réservée au propriétaire.
+    const team = req.team ?? (await teamModel.findByProjectId(id_project));
     if (!team) {
       throw new AppError('Équipe introuvable pour ce projet', 404);
     }
 
-    const userRole = await teamModel.getUserRole(user_id, team.id_team);
+    const userRole = req.membership ?? (await teamModel.getUserRole(user_id, team.id_team));
     if (!userRole || userRole.role !== 'OWNER') {
       throw new AppError('Seul le propriétaire du projet peut effectuer cette action', 403);
     }

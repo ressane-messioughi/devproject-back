@@ -12,12 +12,15 @@ export const canManageDaily = async (req, res, next) => {
   try {
     const { id_project } = req.params;
 
-    const team = await teamModel.findByProjectId(id_project);
+    // Comme isProjectOwner, ce contrôle passe après isProjectMember, qui a déjà
+    // chargé l'équipe et l'appartenance : on les relit plutôt que de refaire
+    // les mêmes requêtes.
+    const team = req.team ?? (await teamModel.findByProjectId(id_project));
     if (!team) {
       throw new AppError('Équipe introuvable pour ce projet', 404);
     }
 
-    const userRole = await teamModel.getUserRole(req.user.id, team.id_team);
+    const userRole = req.membership ?? (await teamModel.getUserRole(req.user.id, team.id_team));
     if (!userRole) {
       throw new AppError('Vous ne faites pas partie de ce projet', 403);
     }
