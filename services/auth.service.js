@@ -1,10 +1,16 @@
+import crypto from "crypto"
 import authModel from "../models/auth.model.js"
+import sessionModel from "../models/userSession.model.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import AppError from "../middleware/AppError.js"
 
+// Durée de vie du jeton, et donc de la session. Écrite une seule fois : les deux
+// doivent expirer ensemble, sinon une session survit à son jeton ou l'inverse.
+const DUREE_SESSION_HEURES = 2;
+
 // Fonction pour connecter un utilisateur
-const loginUser = async ({email, password}) => {
+const loginUser = async ({email, password}, contexte = {}) => {
     const user = await authModel.findByEmail(email);
     if (user.length === 0) {
         throw new AppError ("Email ou mots de passe invalide ❌", 401)
@@ -16,11 +22,28 @@ const loginUser = async ({email, password}) => {
   if (!isPasswordIsValid) {
     throw new AppError ("Email ou mots de passe invalide ❌", 401 )
   }
+  // Une session est ouverte en base, et son identifiant est glissé dans le jeton.
+  //
+  // C'est ce qui rend la déconnexion réelle. Jusqu'ici, se déconnecter ne faisait
+  // qu'effacer le cookie du navigateur : le jeton lui-même restait valable deux
+  // heures, et quiconque en avait gardé une copie pouvait continuer à s'en servir.
+  // L'administration peut maintenant couper un accès immédiatement.
+  const id_session = crypto.randomUUID();
+  const expiration = new Date(Date.now() + DUREE_SESSION_HEURES * 60 * 60 * 1000);
+
+  await sessionModel.create(
+    id_session,
+    users.id,
+    contexte.ip ?? null,
+    (contexte.userAgent ?? '').slice(0, 255) || null,
+    expiration,
+  );
+
   // Assignation d'un TOKEN à la connection contenant les informations de l'utilisateur pour une durée de validité de 2 Heures 
   const donnees = {
-    id: users.id, username: users.username, firstname: users.firstname, lastname: users.lastname, role: users.role, avatar: users.avatar, email: users.email, createdAt: users.created_at, phone: users.phone};
+    id: users.id, username: users.username, firstname: users.firstname, lastname: users.lastname, role: users.role, avatar: users.avatar, email: users.email, createdAt: users.created_at, phone: users.phone, sid: id_session};
 
-  const token = jwt.sign(donnees, process.env.JWT_SECRET, {expiresIn: "2h"})
+  const token = jwt.sign(donnees, process.env.JWT_SECRET, {expiresIn: `${DUREE_SESSION_HEURES}h`})
 
   // Le jeton part dans un cookie httpOnly que le navigateur ne peut pas lire : les
   // informations de l'utilisateur doivent donc lui être renvoyées à part.
@@ -53,7 +76,13 @@ const registerUser = async ({firstname, lastname, username, email, password, ava
 }
 
 // Fonction pour mettre à jour les informations d'un utilisateur
-const updateUser = async (id, userData) => {
+// Le sid est repris tel quel dans le nouveau jeton.
+//
+// Modifier son profil réémet un jeton avec les informations à jour. Sans
+// reprendre l'identifiant de session, ce nouveau jeton n'en porterait aucun, et
+// la session deviendrait introuvable : l'utilisateur serait déconnecté en
+// enregistrant son propre profil.
+const updateUser = async (id, userData, sid) => {
   const fields = [];
   const values = [];
 
@@ -115,6 +144,7 @@ const updateUser = async (id, userData) => {
       avatar: user.avatar,
       phone: user.phone,
       city: user.city,
+      sid,
     };
 
   const token = jwt.sign(
@@ -131,7 +161,7 @@ const updateUser = async (id, userData) => {
   };
 };
 // Fonction pour mettre à jour l'avatar d'un utilisateur
-const updateAvatar = async (user_id, avatar) => {
+const updateAvatar = async (user_id, avatar, sid) => {
 const result = await authModel.updateAvatar(user_id, avatar);
 const user = await authModel.findById(user_id);
 
@@ -148,9 +178,11 @@ const token = jwt.sign(
     avatar: user.avatar,
     phone: user.phone,
     city: user.city,
+    // Comme pour updateUser : sans le sid, changer d'avatar deconnecterait.
+    sid,
   },
   process.env.JWT_SECRET,
-  { expiresIn: "2h" }
+  { expiresIn: `${DUREE_SESSION_HEURES}h` }
 );
 
 return { result, token }

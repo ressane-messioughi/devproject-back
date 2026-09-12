@@ -23,6 +23,13 @@ router.get('/projects', adminController.getProjects);
 router.get('/schemas', adminController.getSchemas);
 router.get('/journals', adminController.getJournals);
 
+// Sessions ouvertes : les lister, en fermer une, ou toutes celles d'un compte.
+// C'est ce qui permet de couper immediatement un acces compromis, sans attendre
+// l'expiration du jeton.
+router.get('/sessions', adminController.getSessions);
+router.delete('/sessions/:id_session', adminController.revoquerSession);
+router.delete('/users/:id_user/sessions', adminController.revoquerSessionsUtilisateur);
+
 // Tickets de support
 router.get('/tickets', ticketController.getAllTickets);
 router.put('/tickets/:id_ticket', validateAnswerBody, validate, ticketController.answerTicket);

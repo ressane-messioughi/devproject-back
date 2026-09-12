@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 
 import authModel from '../models/auth.model.js';
 import tokenModel from '../models/userToken.model.js';
+import sessionModel from '../models/userSession.model.js';
 import AppError from '../middleware/AppError.js';
 import { envoyerEmail } from './email.service.js';
 import {
@@ -158,6 +159,13 @@ const reinitialiserMotDePasse = async (jetonClair, nouveauMotDePasse) => {
 
   const hash = await bcrypt.hash(nouveauMotDePasse, 10);
   await authModel.updatePassword(jeton.users_id, hash);
+
+  // Toutes les sessions ouvertes de ce compte sont fermées.
+  //
+  // Changer son mot de passe après une intrusion ne servirait à rien si la
+  // personne qui avait pris la main y restait connectée : son jeton est déjà
+  // émis, et le nouveau mot de passe ne l'invalide pas.
+  await sessionModel.revoquerTout(jeton.users_id);
 
   return { users_id: jeton.users_id, email: jeton.email };
 };

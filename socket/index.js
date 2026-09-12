@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import sessionModel from '../models/userSession.model.js';
 import registerRoomEvents from "./handlers/room.socket.js";
 import { COOKIE_NAME } from "../middleware/cookie.middleware.js";
 
@@ -20,7 +21,7 @@ const lireCookie = (entete, nom) => {
   return trouve ? decodeURIComponent(trouve.slice(1).join('=')) : undefined;
 };
 
-export const authenticateSocket = (socket, next) => {
+export const authenticateSocket = async (socket, next) => {
   // Le jeton vient du cookie httpOnly, exactement comme pour les routes HTTP.
   // Socket.IO ne décode pas les cookies lui-même : l'en-tête brut du handshake est
   // analysé ici. Côté navigateur, il suffit que la connexion soit ouverte avec
@@ -31,15 +32,36 @@ export const authenticateSocket = (socket, next) => {
     return next(new Error("Accès refusé 🔒"));
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return next(new Error("Token invalide ou expiré ❌"));
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return next(new Error("Token invalide ou expiré ❌"));
+  }
+
+  // La session est vérifiée ici comme sur les routes HTTP.
+  //
+  // Sans ce contrôle, révoquer une session depuis le panel d'administration
+  // fermerait la porte HTTP mais laisserait le transport temps réel ouvert : la
+  // personne continuerait de recevoir les notifications de l'équipe, de voir qui
+  // se connecte et de figurer parmi les membres en ligne.
+  if (!decoded.sid) {
+    return next(new Error("Session expirée, reconnectez-vous 🔒"));
+  }
+
+  try {
+    const session = await sessionModel.findActive(decoded.sid);
+    if (!session) {
+      return next(new Error("Session révoquée ou expirée 🔒"));
     }
-    // L'identité vient du jeton et de nulle part ailleurs : un client ne peut plus
-    // se faire passer pour un autre utilisateur en trafiquant les données qu'il envoie.
-    socket.data.user = decoded;
-    next();
-  });
+  } catch {
+    return next(new Error("Vérification de session impossible"));
+  }
+
+  // L'identité vient du jeton et de nulle part ailleurs : un client ne peut plus
+  // se faire passer pour un autre utilisateur en trafiquant les données qu'il envoie.
+  socket.data.user = decoded;
+  next();
 };
 
 export default function configureSocket(io) {

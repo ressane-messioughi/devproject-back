@@ -1,5 +1,6 @@
 import authService from '../services/auth.service.js';
 import accountService from '../services/account.service.js';
+import sessionModel from '../models/userSession.model.js';
 import cloudinary from '../config/cloudinary.js';
 import jwt from 'jsonwebtoken';
 import { COOKIE_NAME, cookieOptions, clearCookieOptions } from '../middleware/cookie.middleware.js';
@@ -10,7 +11,14 @@ import { COOKIE_NAME, cookieOptions, clearCookieOptions } from '../middleware/co
 // de la page ne peut pas lire.
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  const { token, user } = await authService.loginUser({ email, password });
+
+  // L'adresse et le navigateur sont rangés avec la session : sans eux, le panel
+  // d'administration montrerait une liste de sessions indistinguables, et
+  // choisir laquelle couper deviendrait impossible.
+  const { token, user } = await authService.loginUser(
+    { email, password },
+    { ip: req.ip, userAgent: req.get('user-agent') },
+  );
 
   res.cookie(COOKIE_NAME, token, cookieOptions());
 
@@ -20,6 +28,21 @@ export const login = async (req, res) => {
 // Fonction Déconnexion
 // Le navigateur ne peut pas supprimer un cookie httpOnly : seul le serveur le peut.
 export const logout = async (req, res) => {
+  // La session est fermée en base avant d'effacer le cookie. Sans cela, se
+  // déconnecter ne faisait qu'oublier le jeton côté navigateur : celui-ci
+  // restait valable, et une copie conservée ailleurs fonctionnait encore.
+  const token = req.cookies?.[COOKIE_NAME];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (decoded.sid) await sessionModel.revoquer(decoded.sid);
+    } catch {
+      // Jeton déjà expiré ou illisible : il n'y a plus de session à fermer, et
+      // la déconnexion doit aboutir quand même.
+    }
+  }
+
   res.clearCookie(COOKIE_NAME, clearCookieOptions());
   return res.status(200).json({ message: 'Déconnexion réussie' });
 };
@@ -39,14 +62,28 @@ export const me = async (req, res) => {
     return res.status(200).json({ user: null });
   }
 
-  return jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      // Jeton expiré ou trafiqué : on nettoie le cookie au passage
-      res.clearCookie(COOKIE_NAME, clearCookieOptions());
-      return res.status(200).json({ user: null });
-    }
-    return res.status(200).json({ user: decoded });
-  });
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    // Jeton expiré ou trafiqué : on nettoie le cookie au passage
+    res.clearCookie(COOKIE_NAME, clearCookieOptions());
+    return res.status(200).json({ user: null });
+  }
+
+  // Cette route ne passe pas par authenticate, puisqu'elle doit pouvoir répondre
+  // « personne » en 200 depuis une page publique. Le contrôle de session doit
+  // donc être refait ici : sans lui, un jeton révoqué continuerait d'annoncer
+  // l'utilisateur comme connecté, et l'application le laisserait entrer avant
+  // de se heurter au premier 401.
+  const session = decoded.sid ? await sessionModel.findActive(decoded.sid) : null;
+
+  if (!session) {
+    res.clearCookie(COOKIE_NAME, clearCookieOptions());
+    return res.status(200).json({ user: null });
+  }
+
+  return res.status(200).json({ user: decoded });
 };
 
 // Fonction Inscription
@@ -120,7 +157,7 @@ export const resetPassword = async (req, res) => {
 // Fonction Mise à jour de l'utilisateur
 export const updateUser = async (req, res) => {
   const id = req.user.id;
-  const { result, token, user } = await authService.updateUser(id, req.body);
+  const { result, token, user } = await authService.updateUser(id, req.body, req.user.sid);
 
   // Les informations du jeton ont changé : on repose le cookie avec le nouveau
   if (token) {
@@ -146,7 +183,7 @@ export const updateAvatar = async (req, res) => {
     stream.end(req.file.buffer);
   });
   const avatar = uploadResult.secure_url;
-  const { result, token } = await authService.updateAvatar(user_id, avatar);
+  const { result, token } = await authService.updateAvatar(user_id, avatar, req.user.sid);
 
   if (token) {
     res.cookie(COOKIE_NAME, token, cookieOptions());

@@ -1,4 +1,6 @@
 import adminService from '../services/admin.service.js';
+import sessionModel from '../models/userSession.model.js';
+import AppError from '../middleware/AppError.js';
 
 // Fonction pour récupérer le tableau de bord de l'administration
 const getDashboard = async (req, res) => {
@@ -30,4 +32,54 @@ const getJournals = async (req, res) => {
   return res.status(200).json({ message: 'Journaux chargés', result });
 };
 
-export default { getDashboard, getUsers, getProjects, getSchemas, getJournals };
+// Liste des sessions, pour le panel.
+// Les sessions récemment révoquées ou expirées restent dans la liste : c'est ce
+// qui permet de constater qu'une révocation a bien eu lieu.
+const getSessions = async (req, res) => {
+  const result = await sessionModel.lister();
+  return res.status(200).json({ result });
+};
+
+// Fermeture d'une session précise
+const revoquerSession = async (req, res) => {
+  const { id_session } = req.params;
+
+  // Se couper soi-même reviendrait à se déconnecter sans le vouloir en cliquant
+  // dans une liste : le panel propose le bouton de déconnexion pour cela.
+  if (id_session === req.user.sid) {
+    throw new AppError('Utilisez la déconnexion pour fermer votre propre session', 400);
+  }
+
+  const result = await sessionModel.revoquer(id_session, req.user.id);
+
+  if (result.affectedRows === 0) {
+    throw new AppError('Session introuvable ou déjà fermée', 404);
+  }
+
+  return res.status(200).json({ message: 'Session fermée' });
+};
+
+// Fermeture de toutes les sessions d'un utilisateur, la sienne exceptée si
+// l'administrateur agit sur son propre compte.
+const revoquerSessionsUtilisateur = async (req, res) => {
+  const { id_user } = req.params;
+  const sauf = Number(id_user) === req.user.id ? req.user.sid : null;
+
+  const result = await sessionModel.revoquerTout(id_user, req.user.id, sauf);
+
+  return res.status(200).json({
+    message: `${result.affectedRows} session(s) fermée(s)`,
+    fermees: result.affectedRows,
+  });
+};
+
+export default {
+  getDashboard,
+  getUsers,
+  getProjects,
+  getSchemas,
+  getJournals,
+  getSessions,
+  revoquerSession,
+  revoquerSessionsUtilisateur,
+};
