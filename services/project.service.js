@@ -3,6 +3,7 @@ import teamModel from '../models/team.model.js';
 import journalModel from '../models/journal.model.js';
 import schemaModel from '../models/schema.model.js';
 import documentModel from '../models/document.model.js';
+import dailyModel from '../models/daily.model.js';
 import sprintModel from '../models/sprint.model.js';
 import taskModel from '../models/task.model.js';
 import bugsModel from '../models/bugs.model.js';
@@ -49,6 +50,7 @@ const deleteProject = async (id_project, team) => {
     await journalModel.removeByProjectId(id_project);
     await schemaModel.removeByProjectId(id_project);
     await documentModel.removeByProjectId(id_project);
+    await dailyModel.removeByProjectId(id_project);
     await sprintModel.removeByProjectId(id_project);
     await taskModel.removeByProjectId(id_project);
     await bugsModel.removeByProjectId(id_project);
